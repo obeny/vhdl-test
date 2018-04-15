@@ -7,23 +7,33 @@ then
 fi
 
 DIR=${1}
+
 echo "Removing TESTBENCHES from ${DIR}..."
 for I in `find ${DIR}/tb -type f`
 do
-    echo -e "\t${I}"
-    rm tb/`basename ${I}`
+    FILE="tb/`basename ${I}`"
+    if [ -f ${FILE} ]; then
+        echo -e "\t${I}"
+        rm ${FILE}
+    fi
 done
 
 echo -e "\nRemoving COMPONENT SOURCES from ${DIR}..."
 for I in `find ${DIR}/src -type f`
 do
-    echo -e "\t${I}"
-    rm src/`basename ${I}`
+    FILE="src/`basename ${I}`"
+    if [ -f ${FILE} ]; then
+        echo -e "\t${I}"
+        rm ${FILE}
+    fi
 done
 
 echo -e "\nRemoving TEST SCRIPTS from ${DIR}..."
 for I in `find ${DIR}/scripts -type f`
 do
-    echo -e "\t${I}"
-    rm scripts/`basename ${I}`
+    FILE="scripts/`basename ${I}`"
+    if [ -f ${FILE} ]; then
+        echo -e "\t${I}"
+        rm ${FILE}
+    fi
 done

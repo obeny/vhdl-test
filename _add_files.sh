@@ -6,6 +6,8 @@ then
     exit 1
 fi
 
+mkdir -p scripts src tb
+
 DIR=${1}
 echo "Inserting TESTBENCHES from ${DIR}..."
 for I in `find ${DIR}/tb -type f`
