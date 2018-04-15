@@ -1,0 +1,545 @@
+GENERAL INFORMATION:
+====================
+
+This framework provides convinient mechanism for automated testing
+of FPGA/CPLD components. Component can be tested by VHDL simulation
+or HW simulator (external device required).
+
+Test is performed by feeding test vectors to component (processed
+by vhdl function library or dedicated hardware processor - depending
+on test type). Vectors contains values fed to input signal and
+expected output signal values. Whenever output signal differs from
+expected value, error is indicated and testcase fails.
+
+Typical VHDL component testing is based on forcing input signals
+and checking whether given output signals are set to expected
+values. This is normally covered by dedicated VHDL testbench code.
+This framework does exactly this but in more fancy way, which is
+also portable and it is possible to test component as hardware device
+using dedicated hardware test executor.
+
+Testbenches are written in XML to keep it user-readable and provide
+abstraction for generating tests for various targets (vhdl,
+hardware). This approach allows to prepare testcases easily even
+for those who do not know VHDL very well. Support of testing
+environment can be extended by adding new backend (e.g. Altera IDE).
+
+XML files describing test suites are validated before generating
+generating test files to avoid improper values or syntax. Checking
+XML format is not sufficient, so test generator "gen_tb" performs
+some additional sanity-checks at runtime.
+
+Testing framework do not distinguish whether component is complex
+(contains many internal entities tied toghether providing given
+funtionality) or it is generic (e.g. signal vectors have different
+length depending on parameters passed to component creation
+statement). It can be configured in separate section related to
+selected backend. For HW simulation, generic information is useless,
+so it applies only for VHDL simulation.
+
+Report format is specific for executing environment (VHDL backend
+uses report statement to interrupt execution or to indicate error
+and hardware test processor provides own information regarding test
+result/state). Test output is extracted by dedicated runner scripts
+that extracts vital information from test log and prepares
+information which is useful for user.
+
+This framework intention is to provide simple Unit Testing
+mechanism, so it is NOT possible to test inter-component
+interaction. Only one component can be tested it single testbench.
+However it is possible to test many components that are contents of
+bigger one. Primary omponents can be put into complex component and
+connected. Those primary components are treated as dependency and have
+to be included in upper-level component which hides them from outer
+world.
+
+How Unit Testing defines component quality:
+Unit testing is not a way to make component behavior correct
+in all possible situations, it's goal is to ensure that component
+behaves correctly in well defined use cases.
+
+Due to nature of VHDL and unit tests, each testcase within testbench
+is state-less, so whenever new testcase starts to execute, it has
+clear, default environment as any previous tests was never existed.
+This rule doesn't apply to clocks, which are running continuesly.
+This behavior can be altered by setting appropriate attribute in
+test body, so test can inherit environment state and/or reset clock
+phase if it is required.
+
+General approach to component development (TDD):
+1. Describe component funtionality
+2. Creation of component entity (describing component interface)
+3. Preparation of unit tests
+4. Iterational development of component architecture to pass
+	testcase(s)
+
+System requirements:
+ * UNIX-like system
+ * XILINX ISE (tested with 14.7)
+ * GNU Make
+ * Bash
+ * XmlLint
+ * Python-3.0.1+
+
+Version information:
+ 0.5 - added new functions, bugfixes
+  * improved output for failing testcase - providing failed testcase number
+  * improved sanitychecks
+  * fixed getSignalAtPosition function, now it is able to find signal name for any line
+  * fixed generating project with duplicated entries
+  * fixed schema to allow "-" - "don't care" where missing
+  * updated examples
+  * make do not stop on errors (logs collected and report provided instead)
+  * changed vhdl dependencies from component to any vhdl file (e.g. config)
+  * testbench informs about failed vector
+  * nanoseconds support
+  * add log instance for TimeUtils to avoid crashes
+  * validating vector length
+  * disabling testcases
+  * make testbench somewhat compatible with modelsim
+  * simplified testcases - looping over testcases instead of defining separate blocks
+  * extracted public api for testing.vhd
+  * added support for contentions on lines - 'X'
+
+ 0.4 - added new functions
+  * disabling clock
+  * test runner fails if warnings detected
+  * improved counting and marking testcases
+  * improved testcase reports
+  * added "don't care" value for vectors to reuse value from last vector
+  * step testcase do not have to define expect for every output
+
+ 0.3 - first public release
+  * complete support for VHDL simulation (XILINX ISE)
+  * hw test processor is not available yet
+
+TESTING LOGIC:
+==============
+
+Explanations:
+Testbench - complete test suite, containing many testcases
+Testcase - one of many tests within testbench checking particular
+  behavior
+
+Testbench consists of testcase(s) which are executed in
+order that they are defined in test suite. Each testbench finishes
+with summary whether it has completed and how many tests failed
+and how much time it took.
+
+Clock signals are not possible to force from test body, clock is
+ticking with given frequency and it is passed directly to clock
+input of component. It is possible to reset clock to its default
+value and start ticking at the beginning of testcase.
+
+Before running each testcase initialization of environment is
+performed. This means setting signal to default values. It ensures
+that previous test result is not affecting next test in sequence.
+
+After initialization test vectors are sequentially processed,
+component inputs are set to given values, test is waiting for
+given time and finally checks outputs. Process repeats until
+all vectors are processed. It is difficult to find transitional
+states because output checks are performed in exact time moments.
+However it can be checked manually using graphical VHDL simulation.
+It is not possible on hardware target.
+
+TODO
+====
+ * striping spaces in signal default values (readability)
+ * remove defining signal position
+ * binary/hex signal default value
+ * update docs
+ ? Altera IDE/modelsim support
+ ? Post-fit simulation
+ * refactoring and cleanup
+ * HW target support
+
+TEST VECTOR FORMAT:
+===================
+
+Test vector sequence is stored in "<component_name>_<tc_num>.vec" file.
+Test vector contains: time to wait, signal values separated by space.
+Location where particular signal is appearing in vector is defined
+in XML. Position in vector is counted from 0.
+
+Time syntax:
+ UNNN - where U is time unit, NNN is always 3-digit value - leading
+  zeros is a must
+
+ time unit (U):
+  n - for nanoseconds
+  u - for microseconds
+  m - for miliseconds
+  s - for seconds
+ Smaller values are not available due to difficulty to handle them
+ in hardware processor.
+
+Examples:
+ 1. n010 - means 100 nanoseconds
+ 2. u200 - means 200 microseconds
+ 3. m001 - means 1 milisecond
+ 4. s999 - means 999 seconds
+
+Acceptable signal values:
+Inputs
+  * 0, 1 - set low or high
+  * '-' don't care - leave previous value
+Outputs
+  * l, h - expect low and high
+  * '-' don't care - leave previous value
+Bi-directional
+  * 0, 1 - values are used to force low or high value when bidir
+ 	  is acting as input
+  * L, H - values are used to check whether signal is low or high
+ 	  when bidir is acting as output
+  * X, Z - unknown, hi-Z
+  * '-' don't care - leave previous value
+
+Examples:
+1. and_gate:
+ a - input at pos 0
+ b - input at pos 1
+ z - output at pos 2
+
+ vector "u001 0 1 l":
+  set a to '0'
+  set b to '1'
+  wait for 1 microsecond
+  check whether z is '0' - low - testcase should pass
+
+ vector "m020 1 1 l"
+  set a to '1'
+  set b to '1'
+  wait for 20 milisec
+  check whether z is '0' - low - testcase should fail
+
+2. bidir_vec - forward b to a if s=0, forward a to b if s=1:
+ s - input at pos 0
+ a - bidir (4 bit descending) at pos 1
+ b - bidir (4 bit descending) at pos 5 (size of previous signal: a is 4)
+  ascending - bit order (0123) - MSB last
+  descending - bit order (3210) - LSB last
+
+ vector "u001 0 LLLL 0000"
+  set s to '0'
+  set b to "0000"
+  wait for 1 microsecond
+  check whether a is "0000" - all low - testcase should pass
+
+ vector "u001 1 1111 HHHH"
+  set s to '1'
+  set a to "1111"
+  wait for 1 microsecond
+  check whether b is "1111" - all high - testcase should pass
+
+TESTBENCH SYNTAX:
+=================
+
+Testbenches are XML files which defines component behavior,
+its interface (input/output/bidir signals) and testcases. Each information
+is stored in separate XML node. Nodes are described from highest
+level to lowest. Elements are listed in order which is expected
+by XML parser, different order will cause generator or XML validator
+error.
+
+testbench - ROOT element (1 level)
+attrs: none
+elements:
+ * component - mandatory
+ * signals - mandatory
+ * backends - optional
+ * testcases - mandatory
+
+LEVEL 1:
+component - component definition (2 level, under ROOT)
+attrs:
+ * name - mandatory - name of component entity
+ * type - mandatory - "sequential" or "concurrent"
+  concurrent - component has no clock inputs
+  sequential - component have at least one clock input, it processes
+   signals on clock signal change
+ * interval - mandatory - default value of time interval between
+  setting inputs and checking output values (used if not specified
+  in test body)
+elements: none
+
+signals - component interface definition (2 level, under ROOT)
+attrs: none
+elements:
+* clock - optional
+* in - optional
+* in_vec - optional
+* out - optional
+* out_vec - optional
+* inout - optional
+* inout_vec - optional
+NOTE:
+ At least one signal which is considered as input have to be defined.
+ At least one signal which is considered as output have to be defined.
+ Inouts are treates as input and output at once.
+
+backends - backend specific information (optional) (2 level, under ROOT)
+attrs: none
+elements:
+ * vhdl - optional
+ * hw - optional
+
+LEVEL 2 - signals:
+clock - clock signal definition (3 level, under signals)
+attrs:
+ * name - mandatory - signal name in entity
+ * freq - mandatory - clock frequency in format: "N+ [kMG]", where:
+  N - numeric value with at least one digit
+  k,M,G - unit suffix (kilo, Mega, Giga accordingly)
+  Example: "100 k" - 100 kHz, period 10 us
+ * val - mandatory - default value - indicates whether clock starts
+  with '0' or '1'
+elements: none
+
+in, out, inout - single signal definition (3 level, under signals)
+attrs:
+ * name - mandatory - signal name in entity
+ * pos - mandatory - position in test vector
+ * val - optional - default value (not applicable for outputs)
+ * type - optional - if signal is different type than STD_LOGIC it can
+  be overriden by setting it
+elements: none
+
+in_vec, out_vec, inout_vec - signal vector definition (3 level, under signals)
+ * name - same as above
+ * pos - same as above
+ * val - same as above
+ * type - same as above
+ * size - mandatory - signal vector width
+ * order - mandatory - indicates whether signal is ascending or descending
+  ascending: 0 to X - MSB last
+  descending X downto 0 - LSB last
+
+testcases - contains test definitions for component
+attrs: none
+elements:
+ * test - mandatory (at least one)
+
+BACKENDS:
+LEVEL 2 - backends:
+vhdl - provides VHDL backend specific information (3 level, under backends)
+attrs: none
+elements:
+ * generics - optional
+ * deps - optional
+
+hw - provides hardware backend specific information (3 level, under backends)
+attrs: none
+elements:
+ * loop - optional
+
+LEVEL 3 - vhdl:
+generics - defines component generics (4 level, under vhdl)
+attrs: none
+elements:
+ * param - optional
+
+LEVEL 3 - hw:
+loop - defines how many loops of testbench have to be performed (4 level, under hw)
+
+LEVEL 4 - generics:
+param - generic parameter definition of VHDL component (level 5, under vhdl)
+attrs:
+ * name - mandatory - generic parameter name
+ * type - mandatory - generic parameter type
+ * val - mandatory - generic parameter value
+elements: none
+
+LEVEL 4 - deps:
+attrs: none
+elements: component
+
+LEVEL 5 - component:
+attrs:
+ * name - mandatory - component dependency
+elements: none
+
+TESTCASES:
+LEVEL 2 - testcases:
+test - contains information about single testcase (3 level, under testcases)
+attrs:
+ * name - mandatory - testcase name
+ * reset_clock - optional - clock which will be reset for given test
+ * state - optional - possible value: "remember"
+  remember: state of inputs is inherited from previous testcase
+elements:
+ * step - optional
+ * seq - optional
+ * script - optional
+NOTE:
+ At least one of step, seq or script have to be defined
+
+LEVEL 3 - test:
+step - defines single testcase vector content (4 level, under test)
+attrs:
+ * after - optional - overrides default time interval between setting input
+  signals and checking output signals
+elements:
+ * set - optional
+ * set_vec - optional
+ * exp - optional
+ * exp_vec - optional
+NOTE:
+ At least one exp or exp_vec have to be defined
+
+seq - defines sequence of test vectors (4 level, under test)
+attrs: none
+elements:
+ * vec - mandatory
+NOTE:
+At least one vec have to be defined.
+
+script - defines script generating test vector sequence (4 level, under test)
+attrs:
+ * file - mandatory - end part of file name containing script
+elements: none
+
+LEVEL 4 - step:
+set - set input/bidir to given value (5 level, under step)
+attrs:
+ * sig - mandatory - signal name
+ * val - mandatory - value to be assigned
+  '0', '1' allowed
+elements: none
+
+set_vec - set input/bidir vector to given value(5 level, under step)
+attrs:
+ * sig - same as above, but for signal vector
+ * val - same as above, but for signal vector
+elements: none
+
+exp - expect output/bidir value (5 level, under step)
+attrs:
+ * sig - mandatory - signal name
+ * val - mandatory - expected value
+  'l', 'h' allowed for outputs
+  'L', 'H' allowed for bidirs
+elements: none
+
+exp_vec - expect output/bidir vector value (5 level, under step)
+attrs:
+ * sig - same as above, but for signal vector
+ * val - same as above, but for signal vector
+elements: none
+
+LEVEL 4 - seq:
+vec - defines single testcase vector (5 level, under seq)
+attrs: none
+elements: none
+content: vector in appropriate format (described in TEST VECTOR SYNTAX)
+
+VHDL TESTING:
+=============
+
+For each component VHDL testbench file is generated which inserts
+tested component, feeds signal values from test vectors, defines
+testcases.
+
+VHDL testbenches uses "testing.vhd" library to parse test vectors.
+Library sets inputs, adds expectations for output signals
+and handles wait states according to data from ".vec" files, defining
+testing sequence.
+
+HW TESTING:
+===========
+
+Hardware testbench consists of vector file and pin mapping that are
+parsed and processed by dedicated hardrware. It is described by
+hardware testbench processor documentation.
+
+TESTBENCH SCRIPTING:
+====================
+
+To achieve flexibility which may or may not be provided by XML,
+there is possibility to prepare test scripts that generates
+appropriate test vector sequences. Use this option as a rescue
+because it hides test intention and flow.
+
+Scripts have to be written in Python-3.0.1+. You are completely
+free in its implementation. The only limit is return value from
+the script which have to contain testcase time in microseconds and
+string containing sequence of test vectors with. Formatting is not
+important so spaces separating signals can be ignored, but it is highly
+recommended to keep it consistent with vector file format just for
+better readibility.
+
+See "examples/scripts" directory for simple test scripts implementation.
+
+INSTALLATION:
+=============
+
+No installation needed, everything what is required is contained
+in framework package, it can be extracted anywhere in filesystem.
+
+You have to instal Xilinx ISE.
+
+USAGE:
+======
+
+Prerequisities:
+Edit Makefile.cnf file.
+set XILINX_ISE_DIR to location where XILINX ISE is installed
+set XILINX_X86_64 to "yes" if your system is running x86_64 system
+
+Naming conventions:
+file names - only lowercase letters, numeric and underscores "_"
+ are allowed.
+component code - have to be located in "src" directory,
+ allowed name format: "<component_name>.vhd
+component testbench - have to be located in "tb" directory,
+ allowed name format: "<component_name>_tb.xml"
+component testcase script - have to be located in "scripts" directory,
+ allowed name format: "<component_name>_<name>.py", where <name> is
+ testcase name taken form XML.
+
+Examples:
+1. Run all enabled tests
+ # make
+2. Run all VHDL tests
+ (equal to above if USE_HW is not set to "yes" in "Makefile.cnf")
+ # make sim_run
+3. Run selected VHDL test (and_gate component in example)
+ # make sim_run_and_gate
+4. Run GUI with waves for VHDL test (and_gate component in example)
+ # make sim_run_gui_and_gate
+
+TODO: HW targets are not supported yet, sorry :(
+
+EXAMPLES:
+=========
+
+To run example test suite you can use files in "examples" directory.
+Files should be linked/copied to "src", "tb" and "src" directories
+accordingly.
+You can use _{add,del}_files.sh to populate scripts, src, tb directories.
+
+TROUBLESHOOTING:
+================
+
+Xilinx ISE requires to export few environment variables to run
+propperly. Before running VHDL testing you have to:
+ # source <XILINX_ISE_LOCATION>/ISE_DS/settings[64,32].sh
+Select 64 or 32 depending on your system architecture.
+Otherwise running simulation may fail with "Segmentation fault".
+
+LICENSE:
+========
+
+Copyright (C) 2015-2018 - Marcin 'obeny' Benka <obeny@obeny.net>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+http://www.gnu.org/licenses/gpl-2.0.html

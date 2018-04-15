@@ -1,0 +1,108 @@
+<testbench>
+	<component name="ff_d" type="sequential" interval="5 us"/>
+
+	<signals>
+		<clock name="clk" freq="100 k" val="0"/>
+
+		<in name="rst" pos="0" val="1"/>
+		<in name="d" pos="1" val="0"/>
+
+		<out name="q" pos="2"/>
+	</signals>
+
+	<backends>
+		<hw>
+			<loop count="100"/>
+		</hw>
+	</backends>
+
+	<testcases>
+		<!-- TEST 1: simple -->
+		<!-- test start 0 us -->
+		<test name="TEST1: no output on reset">
+			<step>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<set sig="d" val="1"/>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<exp sig="q" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST 2: simple -->
+		<!-- test start 20 us -->
+		<test name="TEST2: signal is latched on rising clock">
+			<step>
+				<set sig="rst" val="1"/>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<set sig="rst" val="0"/>
+				<set sig="d" val="1"/>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<exp sig="q" val="h"/>
+			</step>
+			<step>
+				<exp sig="q" val="h"/>
+			</step>
+			<step>
+				<exp sig="q" val="h"/>
+			</step>
+
+			<step>
+				<set sig="d" val="0"/>
+				<exp sig="q" val="h"/>
+			</step>
+			<step>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<exp sig="q" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST 3: simple -->
+		<!-- test start 65 us -->
+		<test name="TEST3: transient change on input doesn't affect latched output">
+			<step>
+				<set sig="rst" val="0"/>
+				<set sig="d" val="1"/>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<exp sig="q" val="h"/>
+			</step>
+			<step>
+				<set sig="d" val="0"/>
+				<exp sig="q" val="h"/>
+			</step>
+			<step>
+				<set sig="d" val="0"/>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<set sig="d" val="1"/>
+				<exp sig="q" val="l"/>
+			</step>
+			<step>
+				<set sig="d" val="0"/>
+				<exp sig="q" val="l"/>
+			</step>
+			<step after="u020">
+				<set sig="d" val="1"/>
+				<exp sig="q" val="h"/>
+			</step>
+		</test>
+	</testcases>
+</testbench>

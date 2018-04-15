@@ -1,0 +1,24 @@
+<testbench>
+	<component name="faulty" type="concurrent" interval="10 us"/>
+
+	<signals>
+		<in name="a" pos="0" val="0"/>
+
+		<out name="z" pos="1"/>
+	</signals>
+
+	<backends>
+		<hw>
+			<loop count="100"/>
+		</hw>
+	</backends>
+
+	<testcases>
+		<!-- TEST 1: fail -->
+		<test name="TEST1: a=0, z=1 - should fail">
+			<step>
+				<exp sig="z" val="h"/>
+			</step>
+		</test>
+	</testcases>
+</testbench>

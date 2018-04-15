@@ -1,0 +1,76 @@
+<testbench>
+	<component name="bidir_vec" type="concurrent" interval="1 us"/>
+
+	<signals>
+		<in name="dir" pos="0" val="0"/>
+
+		<inout_vec name="a" pos="1" size="2" order="desc" val="ZZ"/>
+		<inout_vec name="b" pos="3" size="2" order="desc" val="ZZ"/>
+	</signals>
+
+	<backends>
+		<hw>
+			<loop count="100"/>
+		</hw>
+	</backends>
+
+	<testcases>
+		<!-- TEST 1: simple -->
+		<test name="TEST1: when dir = 0, forward b to a">
+			<step>
+				<set_vec sig="b" val="00"/>
+				<exp_vec sig="a" val="LL"/>
+			</step>
+			<step>
+				<set_vec sig="b" val="01"/>
+				<exp_vec sig="a" val="LH"/>
+			</step>
+			<step>
+				<set_vec sig="b" val="10"/>
+				<exp_vec sig="a" val="HL"/>
+			</step>
+			<step>
+				<set_vec sig="b" val="11"/>
+				<exp_vec sig="a" val="HH"/>
+			</step>
+		</test>
+
+		<!-- TEST 2: simple -->
+		<test name="TEST2: when dir = 1, forward a to b">
+			<step>
+				<set sig="dir" val="1"/>
+				<set_vec sig="a" val="00"/>
+				<exp_vec sig="b" val="LL"/>
+			</step>
+			<step>
+				<set_vec sig="a" val="01"/>
+				<exp_vec sig="b" val="LH"/>
+			</step>
+			<step>
+				<set_vec sig="a" val="10"/>
+				<exp_vec sig="b" val="HL"/>
+			</step>
+			<step>
+				<set_vec sig="a" val="11"/>
+				<exp_vec sig="b" val="HH"/>
+			</step>
+			<step>
+				<set_vec sig="a" val="11"/>
+				<exp_vec sig="b" val="-H"/>
+			</step>
+			<step>
+				<set_vec sig="a" val="11"/>
+			</step>
+		</test>
+
+		<!-- TEST3: sequence -->
+		<test name="TEST3: sequence when dir = 0, forward b to a">
+			<seq>
+				<vec>#### 0 LL 00</vec>
+				<vec>#### 0 LH 01</vec>
+				<vec>#### - HL 10</vec>
+				<vec>#### - HH 11</vec>
+			</seq>
+		</test>
+	</testcases>
+</testbench>

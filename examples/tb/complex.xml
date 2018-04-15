@@ -1,0 +1,40 @@
+<testbench>
+	<component name="complex" type="concurrent" interval="1 us"/>
+
+	<signals>
+		<in name="s" pos="0" val="0"/>
+
+		<in name="a" pos="1" val="1"/>
+		<in name="b" pos="2" val="1"/>
+		
+		<out name="z" pos="3"/>
+	</signals>
+
+	<backends>
+		<vhdl>
+			<deps>
+				<dep name="and_gate"/>
+				<dep name="xor_gate"/>
+			</deps>
+		</vhdl>
+		<hw>
+			<loop count="100"/>
+		</hw>
+	</backends>
+
+	<testcases>
+		<!-- TEST 1: simple -->
+		<test name="TEST1: and_gate output if s=0">
+			<step>
+				<exp sig="z" val="h"/>
+			</step>
+		</test>
+		<!-- TEST 2: simple -->
+		<test name="TEST2: xor_gate output if s=1">
+			<step>
+				<set sig="s" val="1"/>
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+	</testcases>
+</testbench>

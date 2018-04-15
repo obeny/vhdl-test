@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified">
+
+<xs:include schemaLocation="backend_vhdl.xsd"/>
+<xs:include schemaLocation="backend_hw.xsd"/>
+
+<!-- BEG: ROOT ELEMENT -->
+<xs:element name="testbench">
+	<xs:complexType>
+		<xs:sequence>
+			<xs:element name="component" type="type_component"/>
+			<xs:element name="signals" type="type_signals"/>
+			<xs:element name="backends" type="type_backends" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="testcases" type="type_testcases"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+<!-- END: ROOT ELEMENT -->
+
+<!-- BEG: testbench -->
+<xs:complexType name="type_component">
+	<xs:attribute name="name" type="comm_atype_label" use="required"/>
+	<xs:attribute name="type" type="atype_component_type" use="required"/>
+	<xs:attribute name="interval" type="atype_component_interval" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="type_signals">
+	<xs:sequence>
+		<xs:element name="clock" type="type_signals_clock" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element name="in" type="type_signals_in" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element name="in_vec" type="type_signals_in_vec" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element name="out" type="type_signals_out" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element name="out_vec" type="type_signals_out_vec" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element name="inout" type="type_signals_inout" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element name="inout_vec" type="type_signals_inout_vec" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="type_backends">
+	<xs:sequence>
+		<xs:element name="vhdl" type="type_backend_vhdl" minOccurs="0" maxOccurs="1"/>
+		<xs:element name="hw" type="type_backend_hw" minOccurs="0" maxOccurs="1"/>
+	</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="type_testcases">
+	<xs:sequence>
+		<xs:element name="test" type="type_testcases_test" minOccurs="1" maxOccurs="unbounded"/>
+	</xs:sequence>
+</xs:complexType>
+<!-- END: testbench -->
+
+<!-- BEG: testbench/component -->
+<xs:simpleType name="atype_component_type">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="sequential|concurrent"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="atype_component_interval">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[0-9]{1,3} [num]?s"/>
+	</xs:restriction>
+</xs:simpleType>
+<!-- END: testbench/component -->
+
+<!-- BEG: testbench/signals -->
+<xs:complexType name="type_signals_clock">
+	<xs:attribute name="name" type="comm_atype_label" use="required"/>
+	<xs:attribute name="freq" type="atype_signals_clock_freq" use="required"/>
+	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
+	<xs:attribute name="val" type="comm_atype_val" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="type_signals_in">
+	<xs:attribute name="name" type="comm_atype_label" use="required"/>
+	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
+	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
+	<xs:attribute name="val" type="comm_atype_val" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="type_signals_in_vec">
+	<xs:attribute name="name" type="comm_atype_label" use="required"/>
+	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
+	<xs:attribute name="size" type="xs:positiveInteger" use="required"/>
+	<xs:attribute name="order" type="comm_atype_order" use="required"/>
+	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
+	<xs:attribute name="val" type="comm_atype_val_vec" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="type_signals_inout">
+	<xs:attribute name="name" type="comm_atype_label" use="required"/>
+	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
+	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
+	<xs:attribute name="val" type="atype_signals_inout_val" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="type_signals_inout_vec">
+	<xs:attribute name="name" type="comm_atype_label" use="required"/>
+	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
+	<xs:attribute name="size" type="xs:positiveInteger" use="required"/>
+	<xs:attribute name="order" type="comm_atype_order" use="required"/>
+	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
+	<xs:attribute name="val" type="atype_signals_inout_val_vec" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="type_signals_out">
+	<xs:attribute name="name" type="comm_atype_label" use="required"/>
+	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
+	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="type_signals_out_vec">
+	<xs:attribute name="name" type="comm_atype_label" use="required"/>
+	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
+	<xs:attribute name="size" type="xs:positiveInteger" use="required"/>
+	<xs:attribute name="order" type="comm_atype_order" use="required"/>
+	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
+</xs:complexType>
+
+<!-- BEG: testbench/signals/clock -->
+<xs:simpleType name="atype_signals_clock_freq">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[0-9]+ [kMG]"/>
+	</xs:restriction>
+</xs:simpleType>
+<!-- END: testbench/signals/clock -->
+
+<!-- BEG: testbench/signals/inout -->
+<xs:simpleType name="atype_signals_inout_val">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[01Z]"/>
+	</xs:restriction>
+</xs:simpleType>
+<!-- END: testbench/signals/inout -->
+
+<!-- BEG: testbench/signals/inout_vec -->
+<xs:simpleType name="atype_signals_inout_val_vec">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[01Z]+"/>
+	</xs:restriction>
+</xs:simpleType>
+<!-- END: testbench/signals/inout_vec -->
+<!-- END: testbench/signals -->
+
+<!-- BEG: testbench/testcases -->
+<xs:complexType name="type_testcases_test">
+	<xs:choice minOccurs="1" maxOccurs="unbounded">
+		<xs:element name="step" type="type_test_step"/>
+		<xs:element name="seq" type="type_test_seq"/>
+		<xs:element name="script" type="type_test_script"/>
+	</xs:choice>
+	<xs:attribute name="name" type="atype_test_name" use="required"/>
+	<xs:attribute name="state" type="atype_test_state" use="optional"/>
+	<xs:attribute name="clock_reset" type="comm_atype_label" use="optional"/>
+	<xs:attribute name="clock_disable" type="comm_atype_label" use="optional"/>
+	<xs:attribute name="disabled" type="xs:boolean" use="optional"/>
+</xs:complexType>
+
+<!-- BEG: testbench/testcases/test -->
+<xs:simpleType name="atype_test_state">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="remember|discard"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="atype_test_name">
+	<xs:restriction base="xs:string">
+		<xs:maxLength value="128"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:complexType name="type_test_step">
+	<xs:sequence>
+		<xs:element name="set" type="type_step_set" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element name="set_vec" type="type_step_set_vec" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element name="exp" type="type_step_exp" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element name="exp_vec" type="type_step_exp_vec" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+	<xs:attribute name="after" type="atype_step_after" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="type_test_seq">
+	<xs:sequence>
+		<xs:element name="vec" type="type_seq_vec" minOccurs="1" maxOccurs="unbounded"/>
+	</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="type_test_script">
+	<xs:attribute name="file" type="xs:string" use="required"/>
+</xs:complexType>
+
+<!-- BEG: testbench/testcases/test/step -->
+<xs:complexType name="type_step_set">
+	<xs:attribute name="sig" type="comm_atype_label" use="required"/>
+	<xs:attribute name="val" type="comm_atype_val" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="type_step_set_vec">
+	<xs:attribute name="sig" type="comm_atype_label" use="required"/>
+	<xs:attribute name="val" type="comm_atype_val_vec" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="type_step_exp">
+	<xs:attribute name="sig" type="comm_atype_label" use="required"/>
+	<xs:attribute name="val" type="atype_step_exp_val" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="type_step_exp_vec">
+	<xs:attribute name="sig" type="comm_atype_label" use="required"/>
+	<xs:attribute name="val" type="atype_step_exp_vec_val" use="required"/>
+</xs:complexType>
+
+<xs:simpleType name="atype_step_after">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[nums][0-9]{3}"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<!-- BEG: testbench/testcases/test/step/exp -->
+<xs:simpleType name="atype_step_exp_val">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[-hlHLZX]"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="atype_step_exp_vec_val">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[-hlHLZX]+"/>
+	</xs:restriction>
+</xs:simpleType>
+<!-- END: testbench/testcases/test/step/exp -->
+<!-- END: testbench/testcases/test/step -->
+
+<!-- BEG: testbench/testcases/test/seq -->
+<xs:simpleType name="type_seq_vec">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="(#{4} |[nums][0-9]{3} )(| |[01hlHLZX-])+"/>
+	</xs:restriction>
+</xs:simpleType>
+<!-- END: testbench/testcases/test/seq -->
+<!-- END: testbench/testcases/test -->
+<!-- END: testbench/testcases -->
+
+<!-- BEG: COMMON SIMPLE TYPES -->
+<xs:simpleType name="comm_atype_label">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[0-9a-z_]+"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="comm_atype_type">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[A-Z_]+"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="comm_atype_order">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="asc|desc"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="comm_atype_pos">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[0-9]+"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="comm_atype_val">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[01-]"/>
+	</xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="comm_atype_val_vec">
+	<xs:restriction base="xs:string">
+		<xs:pattern value="[01-]+"/>
+	</xs:restriction>
+</xs:simpleType>
+<!-- END: COMMON SIMPLE TYPES -->
+
+</xs:schema>

@@ -1,0 +1,9 @@
+COLORS=yes
+
+TB_GEN_SCRIPT_DIR=scripts
+
+XILINX_ISE_DIR=/opt/XilinxISE/14.7/ISE_DS/ISE
+XILINX_X86_64=yes
+
+USE_SIM=yes
+USE_HW=no

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified">
+
+<!-- BEG: vhdl ROOT -->
+<xs:complexType name="type_backend_vhdl">
+	<xs:sequence>
+		<xs:element name="generics" type="type_backend_vhdl_generics" minOccurs="0" maxOccurs="1"/>
+		<xs:element name="deps" type="type_backend_vhdl_deps" minOccurs="0" maxOccurs="1"/>
+	</xs:sequence>
+</xs:complexType>
+<!-- END: vhdl ROOT -->
+
+<!-- BEG: vhdl -->
+<xs:complexType name="type_backend_vhdl_generics">
+	<xs:sequence>
+		<xs:element name="param" type="type_backend_vhdl_generics_param" minOccurs="1" maxOccurs="unbounded"/>
+	</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="type_backend_vhdl_deps">
+	<xs:sequence>
+		<xs:element name="dep" type="type_backend_vhdl_deps_dep" minOccurs="1" maxOccurs="unbounded"/>
+	</xs:sequence>
+</xs:complexType>
+
+<!-- BEG: vhdl/generics -->
+<xs:complexType name="type_backend_vhdl_generics_param">
+	<xs:attribute name="name" type="comm_atype_type" use="required"/>
+	<xs:attribute name="type" type="comm_atype_type" use="required"/>
+	<xs:attribute name="val" type="xs:string" use="required"/>
+</xs:complexType>
+<!-- END: vhdl/generics -->
+
+<!-- BEG: vhdl/deps -->
+<xs:complexType name="type_backend_vhdl_deps_dep">
+	<xs:attribute name="name" type="comm_atype_label" use="required"/>
+</xs:complexType>
+<!-- END: vhdl/deps -->
+
+<!-- END: vhdl -->
+
+</xs:schema>

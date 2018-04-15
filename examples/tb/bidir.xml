@@ -1,0 +1,56 @@
+<testbench>
+	<component name="bidir" type="concurrent" interval="1 us"/>
+
+	<signals>
+		<in name="dir" pos="0" val="0"/>
+
+		<inout name="a" pos="1" val="0"/>
+		<inout name="b" pos="2" val="0"/>
+	</signals>
+
+	<backends>
+		<hw>
+			<loop count="100"/>
+		</hw>
+	</backends>
+
+	<testcases>
+		<!-- TEST 1: simple -->
+		<test name="TEST1: when dir = 0, forward b to a">
+			<step>
+				<set sig="b" val="0"/>
+				<exp sig="a" val="L"/>
+			</step>
+			<!-- repeat step, with different definition -->
+			<step>
+				<set sig="b" val="-"/>
+				<exp sig="a" val="-"/>
+			</step>
+			<step>
+				<set sig="b" val="1"/>
+				<exp sig="a" val="H"/>
+			</step>
+		</test>
+
+		<!-- TEST 2: simple -->
+		<test name="TEST2: step when dir = 1, forward a to b">
+			<step>
+				<set sig="dir" val="1"/>
+				<set sig="a" val="0"/>
+				<exp sig="b" val="L"/>
+			</step>
+			<step>
+				<set sig="a" val="1"/>
+				<exp sig="b" val="H"/>
+			</step>
+		</test>
+
+		<!-- TEST3: sequence -->
+		<test name="TEST3: sequence when dir = 0, forward b to a">
+			<seq>
+				<vec>#### 0 L 0</vec>
+				<vec>#### - H 1</vec>
+			</seq>
+		</test>
+	</testcases>
+</testbench>

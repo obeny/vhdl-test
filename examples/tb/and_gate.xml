@@ -1,0 +1,106 @@
+<testbench>
+	<component name="and_gate" type="concurrent" interval="10 ns"/>
+
+	<signals>
+		<in name="a" pos="0" val="0"/>
+		<in name="b" pos="1" val="0"/>
+
+		<out name="z" pos="2"/>
+	</signals>
+
+	<backends>
+		<hw>
+			<loop count="100"/>
+		</hw>
+	</backends>
+
+	<testcases>
+		<!-- TEST 1: simple -->
+		<test name="TEST1: a=0, b=0">
+			<step>
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST 2: simple -->
+		<test name="TEST2: a=1, b=0">
+			<step>
+				<set sig="a" val="1"/>
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST 3: simple -->
+		<test name="TEST3: a=0, b=1">
+			<step>
+				<set sig="a" val="0"/>
+				<set sig="b" val="1"/>
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST 4: simple -->
+		<test name="TEST4: a=1, b=1">
+			<step>
+				<set sig="a" val="1"/>
+				<set sig="b" val="1"/>
+				<exp sig="z" val="h"/>
+			</step>
+			<step>
+				<set sig="b" val="0"/>
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST5: sequence -->
+		<test name="TEST5: sequence">
+			<seq>
+				<vec>#### 0 0 l</vec>
+				<vec>#### - 1 l</vec>
+				<vec>#### 1 0 l</vec>
+				<vec>n020 - 1 h</vec>
+			</seq>
+		</test>
+
+		<!-- TEST6: script -->
+		<test name="TEST6: script">
+			<script file="test6"/>
+		</test>
+
+		<!-- TEST7: mixed -->
+		<test name="TEST7: mixed">
+			<script file="test7"/>
+			<seq>
+				<vec>#### 0 0 l</vec>
+			</seq>
+			<step>
+				<set sig="b" val="1"/>
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST8: disabled1 -->
+		<test name="TEST8: disabled1" disabled="true">
+			<seq>
+				<vec>#### 1 0 h</vec>
+			</seq>
+		</test>
+
+		<!-- TEST9: mixed - empty expects -->
+		<test name="TEST9: mixed">
+			<seq>
+				<vec>#### 0 0 -</vec>
+			</seq>
+			<step>
+				<set sig="b" val="1"/>
+			</step>
+		</test>
+
+		<!-- TEST8: disabled2 -->
+		<test name="TEST10: disabled2" disabled="true">
+			<seq>
+				<vec>#### 1 0 h</vec>
+			</seq>
+		</test>
+	</testcases>
+</testbench>

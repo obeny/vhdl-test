@@ -1,0 +1,67 @@
+<testbench>
+	<component name="counter_gen" type="sequential" interval="5 us"/>
+
+	<signals>
+		<clock name="clk" freq="100 k" val="0"/>
+
+		<in name="clr" pos="0" val="0"/>
+		<in_vec name="value" pos="1" size="4" order="desc" val="0000"/>
+
+		<out name="z" pos="5"/>
+	</signals>
+
+	<backends>
+		<vhdl>
+			<generics>
+				<param name="N" type="NATURAL" val="4"/>
+			</generics>
+		</vhdl>
+		<hw>
+			<loop count="100"/>
+		</hw>
+	</backends>
+
+	<testcases>
+		<!-- TEST 1: simple -->
+		<test name="TEST1: do not set output when clear active" clock_reset="clk">
+			<step>
+				<set sig="clr" val="1"/>
+				<exp sig="z" val="l"/>
+			</step>
+			<step after="u015">
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST 2: simple -->
+		<test name="TEST2: do not set output when clear active and value set">
+			<step>
+				<set sig="clr" val="1"/>
+				<set_vec sig="value" val="0001"/>
+				<exp sig="z" val="l"/>
+			</step>
+			<step after="u015">
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST 3: simple -->
+		<test name="TEST3: set output when value reached">
+			<seq>
+				<vec>#### - 0010 l</vec>
+				<vec>u015 - ---- h</vec>
+				<vec>u010 - ---- h</vec>
+			</seq>
+		</test>
+
+		<!-- TEST 4: simple -->
+		<test name="TEST4: output unchanged when clock is not ticking" clock_disable="clk">
+			<seq>
+				<vec>#### 1 ---- -</vec>
+				<vec>#### 0 0010 l</vec>
+				<vec>u015 - ---- l</vec>
+				<vec>u010 - ---- l</vec>
+			</seq>
+		</test>
+	</testcases>
+</testbench>

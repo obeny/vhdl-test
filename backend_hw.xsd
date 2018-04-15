@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified">
+
+<!-- BEG: hw ROOT -->
+<xs:complexType name="type_backend_hw">
+	<xs:sequence>
+		<xs:element name="loop" type="type_backend_hw_loop"/>
+	</xs:sequence>
+</xs:complexType>
+<!-- END: hw ROOT -->
+
+<!-- BEG: hw -->
+<xs:complexType name="type_backend_hw_loop">
+	<xs:attribute name="count" type="xs:positiveInteger" use="required"/>
+</xs:complexType>
+<!-- END: hw -->
+
+</xs:schema>

@@ -1,0 +1,58 @@
+<testbench>
+	<component name="hiz_out" type="concurrent" interval="1 us"/>
+
+	<signals>
+		<in name="oe" pos="0" val="1"/>
+		<in name="a" pos="1" val="0"/>
+
+		<in_vec name="av" pos="2" size="2" order="desc" val="00"/>
+
+		<inout name="b" pos="4"/>
+		<inout_vec name="bv" pos="5" size="2" order="desc"/>
+	</signals>
+
+	<backends>
+		<hw>
+			<loop count="100"/>
+		</hw>
+	</backends>
+
+	<testcases>
+		<!-- TEST 1 -->
+		<test name="TEST1: hi-z when oe = 1">
+			<seq>
+				<vec>#### 1 0 00 Z ZZ</vec>
+				<vec>#### - 1 11 Z ZZ</vec>
+			</seq>
+		</test>
+
+		<!-- TEST 2 -->
+		<test name="TEST2: output valid when oe = 0">
+			<seq>
+				<vec>#### 0 0 00 L LL</vec>
+				<vec>#### - 1 11 H HH</vec>
+			</seq>
+		</test>
+
+		<!-- TEST 3 -->
+		<test name="TEST3: line contention when oe = 0">
+			<seq>
+				<vec>#### 1 0 00 Z ZZ</vec>
+				<vec>#### 0 0 00 1 11</vec>
+				<vec>#### 0 0 00 X XX</vec>
+				<vec>#### 0 1 11 0 00</vec>
+				<vec>#### 0 1 11 X XX</vec>
+			</seq>
+			<step>
+				<exp sig="b" val="X"/>
+				<exp_vec sig="bv" val="XX"/>
+			</step>
+			<step>
+				<set sig="a" val="1"/>
+				<set_vec sig="av" val="11"/>
+				<exp sig="b" val="X"/>
+				<exp_vec sig="bv" val="XX"/>
+			</step>
+		</test>
+	</testcases>
+</testbench>

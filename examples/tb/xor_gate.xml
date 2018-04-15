@@ -1,0 +1,63 @@
+<testbench>
+	<component name="xor_gate" type="concurrent" interval="1 ms"/>
+
+	<signals>
+		<in name="a" pos="0" val="0"/>
+		<in name="b" pos="1" val="0"/>
+
+		<out name="z" pos="2"/>
+	</signals>
+
+	<backends>
+		<hw>
+			<loop count="100"/>
+		</hw>
+	</backends>
+
+	<testcases>
+		<!-- TEST 1: simple -->
+		<test name="TEST2: a=0, b=0">
+			<step>
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+
+		<!-- TEST 2: simple -->
+		<test name="TEST2: a=1, b=0">
+			<step>
+				<set sig="a" val="1"/>
+				<exp sig="z" val="h"/>
+			</step>
+		</test>
+
+		<!-- TEST 3: simple -->
+		<test name="TEST3: a=0, b=1">
+			<step>
+				<set sig="a" val="0"/>
+				<set sig="b" val="1"/>
+				<exp sig="z" val="h"/>
+			</step>
+		</test>
+
+		<!-- TEST 4: simple -->
+		<test name="TEST4: a=1, b=1">
+			<step>
+				<set sig="a" val="1"/>
+				<set sig="b" val="1"/>
+				<exp sig="z" val="l"/>
+			</step>
+			<step>
+				<set sig="b" val="0"/>
+				<exp sig="z" val="h"/>
+			</step>
+		</test>
+
+		<!-- TEST 5: remember state -->
+		<test name="TEST5: a=1, b=1" state="remember">
+			<step>
+				<set sig="b" val="1"/>
+				<exp sig="z" val="l"/>
+			</step>
+		</test>
+	</testcases>
+</testbench>
