@@ -1,0 +1,10 @@
+# component information
+scripts
+src
+tb
+
+# build results
+target_sim
+.deps
+logs
+__pycache__
