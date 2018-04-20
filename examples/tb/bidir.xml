@@ -2,10 +2,10 @@
 	<component name="bidir" type="concurrent" interval="1 us"/>
 
 	<signals>
-		<in name="dir" pos="0" val="0"/>
+		<in name="dir" val="0"/>
 
-		<inout name="a" pos="1" val="0"/>
-		<inout name="b" pos="2" val="0"/>
+		<inout name="a" val="0"/>
+		<inout name="b" val="0"/>
 	</signals>
 
 	<backends>

@@ -2,12 +2,12 @@
 	<component name="mux" type="concurrent" interval="1 us"/>
 
 	<signals>
-		<in name="s" pos="0" val="0"/>
+		<in name="s" val="0"/>
 
-		<in_vec name="a" pos="1" size="4" order="asc" val="0000"/>
-		<in_vec name="b" pos="5" size="4" order="asc" val="0000"/>
+		<in_vec name="a" size="4" order="asc" val="0000"/>
+		<in_vec name="b" size="4" order="asc" val="0000"/>
 		
-		<out_vec name="z" pos="9" size="4" order="asc"/>
+		<out_vec name="z" size="4" order="asc"/>
 	</signals>
 
 	<backends>

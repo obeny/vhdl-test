@@ -2,10 +2,10 @@
 	<component name="and_gate" type="concurrent" interval="10 ns"/>
 
 	<signals>
-		<in name="a" pos="0" val="0"/>
-		<in name="b" pos="1" val="0"/>
+		<in name="a" val="0"/>
+		<in name="b" val="0"/>
 
-		<out name="z" pos="2"/>
+		<out name="z"/>
 	</signals>
 
 	<backends>

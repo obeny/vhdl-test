@@ -2,13 +2,13 @@
 	<component name="hiz_out" type="concurrent" interval="1 us"/>
 
 	<signals>
-		<in name="oe" pos="0" val="1"/>
-		<in name="a" pos="1" val="0"/>
+		<in name="oe" val="1"/>
+		<in name="a" val="0"/>
 
-		<in_vec name="av" pos="2" size="2" order="desc" val="0 0"/>
+		<in_vec name="av" size="2" order="desc" val="0 0"/>
 
-		<inout name="b" pos="4"/>
-		<inout_vec name="bv" pos="5" size="2" order="desc"/>
+		<inout name="b"/>
+		<inout_vec name="bv" size="2" order="desc"/>
 	</signals>
 
 	<backends>

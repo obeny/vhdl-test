@@ -2,12 +2,12 @@
 	<component name="complex" type="concurrent" interval="1 us"/>
 
 	<signals>
-		<in name="s" pos="0" val="0"/>
+		<in name="s" val="0"/>
 
-		<in name="a" pos="1" val="1"/>
-		<in name="b" pos="2" val="1"/>
+		<in name="a" val="1"/>
+		<in name="b" val="1"/>
 		
-		<out name="z" pos="3"/>
+		<out name="z"/>
 	</signals>
 
 	<backends>

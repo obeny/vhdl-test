@@ -2,10 +2,10 @@
 	<component name="bidir_vec" type="concurrent" interval="1 us"/>
 
 	<signals>
-		<in name="dir" pos="0" val="0"/>
+		<in name="dir" val="0"/>
 
-		<inout_vec name="a" pos="1" size="2" order="desc" val="ZZ"/>
-		<inout_vec name="b" pos="3" size="2" order="desc" val="ZZ"/>
+		<inout_vec name="a" size="2" order="desc" val="ZZ"/>
+		<inout_vec name="b" size="2" order="desc" val="ZZ"/>
 	</signals>
 
 	<backends>

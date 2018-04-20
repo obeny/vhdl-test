@@ -4,10 +4,10 @@
 	<signals>
 		<clock name="clk" freq="100 k" val="0"/>
 
-		<in name="rst" pos="0" val="1"/>
-		<in name="d" pos="1" val="0"/>
+		<in name="rst" val="1"/>
+		<in name="d" val="0"/>
 
-		<out name="q" pos="2"/>
+		<out name="q"/>
 	</signals>
 
 	<backends>

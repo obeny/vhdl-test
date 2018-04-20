@@ -76,14 +76,12 @@
 
 <xs:complexType name="type_signals_in">
 	<xs:attribute name="name" type="comm_atype_label" use="required"/>
-	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
 	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
 	<xs:attribute name="val" type="comm_atype_val" use="required"/>
 </xs:complexType>
 
 <xs:complexType name="type_signals_in_vec">
 	<xs:attribute name="name" type="comm_atype_label" use="required"/>
-	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
 	<xs:attribute name="size" type="xs:positiveInteger" use="required"/>
 	<xs:attribute name="order" type="comm_atype_order" use="required"/>
 	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
@@ -92,14 +90,12 @@
 
 <xs:complexType name="type_signals_inout">
 	<xs:attribute name="name" type="comm_atype_label" use="required"/>
-	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
 	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
 	<xs:attribute name="val" type="atype_signals_inout_val" use="optional"/>
 </xs:complexType>
 
 <xs:complexType name="type_signals_inout_vec">
 	<xs:attribute name="name" type="comm_atype_label" use="required"/>
-	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
 	<xs:attribute name="size" type="xs:positiveInteger" use="required"/>
 	<xs:attribute name="order" type="comm_atype_order" use="required"/>
 	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
@@ -108,13 +104,11 @@
 
 <xs:complexType name="type_signals_out">
 	<xs:attribute name="name" type="comm_atype_label" use="required"/>
-	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
 	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
 </xs:complexType>
 
 <xs:complexType name="type_signals_out_vec">
 	<xs:attribute name="name" type="comm_atype_label" use="required"/>
-	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
 	<xs:attribute name="size" type="xs:positiveInteger" use="required"/>
 	<xs:attribute name="order" type="comm_atype_order" use="required"/>
 	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
@@ -260,12 +254,6 @@
 <xs:simpleType name="comm_atype_order">
 	<xs:restriction base="xs:string">
 		<xs:pattern value="asc|desc"/>
-	</xs:restriction>
-</xs:simpleType>
-
-<xs:simpleType name="comm_atype_pos">
-	<xs:restriction base="xs:string">
-		<xs:pattern value="[0-9]+"/>
 	</xs:restriction>
 </xs:simpleType>
 

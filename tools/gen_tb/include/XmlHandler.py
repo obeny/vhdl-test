@@ -26,6 +26,7 @@ class XmlHandler:
 		self.dom_root = ET.parse(xml).getroot()
 		self.meta = None
 		self.backendHandler = backend_handler
+		self.current_pos = 0
 
 	def buildMeta(self):
 		self.meta = CLS.Meta()
@@ -199,12 +200,14 @@ class XmlHandler:
 	def __buildSignalIO(self, xml_node):
 		signal = CLS.Signal()
 		signal.size = 1
-		signal.pos = XmlHandlerHelper.signalGetPosition(xml_node)
+		signal.pos = self.current_pos
+
 		signal.name = XmlHandlerHelper.signalGetName(xml_node)
 		signal.role = XmlHandlerHelper.signalGetRole(xml_node)
 		signal.type = XmlHandlerHelper.signalGetType(xml_node)
 		
 		signal.value = xml_node.attrib.get('val', '')
+		self.current_pos += signal.size
 		return signal
 
 	def __buildSignalClock(self, xml_node):
@@ -219,14 +222,16 @@ class XmlHandler:
 
 	def __buildSignalVector(self, xml_node):
 		signal = CLS.SignalVector()
-		signal.pos = XmlHandlerHelper.signalGetPosition(xml_node)
+		signal.size = int(xml_node.attrib['size'])
+		signal.pos = self.current_pos
+
 		signal.name = XmlHandlerHelper.signalGetName(xml_node)
 		signal.role = XmlHandlerHelper.signalGetRole(xml_node)
 		signal.type = XmlHandlerHelper.signalGetType(xml_node)
 
-		signal.size = int(xml_node.attrib['size'])
 		signal.ascending = xml_node.attrib['order'] == "asc"
 		signal.value = xml_node.attrib.get('val', '').replace(" ", "")
+		self.current_pos += signal.size
 		return signal
 
 	def __buildTestcases(self):
@@ -322,10 +327,6 @@ class XmlHandler:
 # XmlHandlerHelper static class - simplifies access to xml nodes for XmlHandler
 class XmlHandlerHelper:
 	# SIGNAL
-	@staticmethod
-	def signalGetPosition(xml_node):
-		return int(xml_node.attrib['pos'])
-
 	@staticmethod
 	def signalGetName(xml_node):
 		return xml_node.attrib['name']

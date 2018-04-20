@@ -2,9 +2,9 @@
 	<component name="faulty" type="concurrent" interval="10 us"/>
 
 	<signals>
-		<in name="a" pos="0" val="0"/>
+		<in name="a" val="0"/>
 
-		<out name="z" pos="1"/>
+		<out name="z"/>
 	</signals>
 
 	<backends>
