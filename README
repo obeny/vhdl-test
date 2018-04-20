@@ -82,6 +82,11 @@ System requirements:
  * Python-3.0.1+
 
 Version information:
+ 0.6 - changed syntax
+  * 'pos' parameter is not needed anymore
+  * in/inout set/exp vectors values can be separated with space
+  * default values for inputs are mandatory
+
  0.5 - added new functions, bugfixes
   * improved output for failing testcase - providing failed testcase number
   * improved sanitychecks
@@ -145,8 +150,6 @@ It is not possible on hardware target.
 
 TODO
 ====
- * striping spaces in signal default values (readability)
- * remove defining signal position
  * binary/hex signal default value
  * update docs
  ? Altera IDE/modelsim support
@@ -299,7 +302,6 @@ elements: none
 in, out, inout - single signal definition (3 level, under signals)
 attrs:
  * name - mandatory - signal name in entity
- * pos - mandatory - position in test vector
  * val - optional - default value (not applicable for outputs)
  * type - optional - if signal is different type than STD_LOGIC it can
   be overriden by setting it
@@ -307,7 +309,6 @@ elements: none
 
 in_vec, out_vec, inout_vec - signal vector definition (3 level, under signals)
  * name - same as above
- * pos - same as above
  * val - same as above
  * type - same as above
  * size - mandatory - signal vector width
