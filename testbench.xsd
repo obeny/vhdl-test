@@ -71,14 +71,14 @@
 	<xs:attribute name="name" type="comm_atype_label" use="required"/>
 	<xs:attribute name="freq" type="atype_signals_clock_freq" use="required"/>
 	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
-	<xs:attribute name="val" type="comm_atype_val" use="optional"/>
+	<xs:attribute name="val" type="comm_atype_val" use="required"/>
 </xs:complexType>
 
 <xs:complexType name="type_signals_in">
 	<xs:attribute name="name" type="comm_atype_label" use="required"/>
 	<xs:attribute name="pos" type="comm_atype_pos" use="required"/>
 	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
-	<xs:attribute name="val" type="comm_atype_val" use="optional"/>
+	<xs:attribute name="val" type="comm_atype_val" use="required"/>
 </xs:complexType>
 
 <xs:complexType name="type_signals_in_vec">
@@ -87,7 +87,7 @@
 	<xs:attribute name="size" type="xs:positiveInteger" use="required"/>
 	<xs:attribute name="order" type="comm_atype_order" use="required"/>
 	<xs:attribute name="type" type="comm_atype_type" use="optional"/>
-	<xs:attribute name="val" type="comm_atype_val_vec" use="optional"/>
+	<xs:attribute name="val" type="comm_atype_val_vec" use="required"/>
 </xs:complexType>
 
 <xs:complexType name="type_signals_inout">
