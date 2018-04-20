@@ -5,7 +5,7 @@
 		<in name="oe" pos="0" val="1"/>
 		<in name="a" pos="1" val="0"/>
 
-		<in_vec name="av" pos="2" size="2" order="desc" val="00"/>
+		<in_vec name="av" pos="2" size="2" order="desc" val="0 0"/>
 
 		<inout name="b" pos="4"/>
 		<inout_vec name="bv" pos="5" size="2" order="desc"/>
@@ -49,9 +49,9 @@
 			</step>
 			<step>
 				<set sig="a" val="1"/>
-				<set_vec sig="av" val="11"/>
+				<set_vec sig="av" val="1 1"/>
 				<exp sig="b" val="X"/>
-				<exp_vec sig="bv" val="XX"/>
+				<exp_vec sig="bv" val="X X"/>
 			</step>
 		</test>
 	</testcases>

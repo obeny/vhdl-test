@@ -139,7 +139,7 @@
 <!-- BEG: testbench/signals/inout_vec -->
 <xs:simpleType name="atype_signals_inout_val_vec">
 	<xs:restriction base="xs:string">
-		<xs:pattern value="[01Z]+"/>
+		<xs:pattern value="[ 01Z]+"/>
 	</xs:restriction>
 </xs:simpleType>
 <!-- END: testbench/signals/inout_vec -->
@@ -222,13 +222,13 @@
 <!-- BEG: testbench/testcases/test/step/exp -->
 <xs:simpleType name="atype_step_exp_val">
 	<xs:restriction base="xs:string">
-		<xs:pattern value="[-hlHLZX]"/>
+		<xs:pattern value="[hlHLZX-]"/>
 	</xs:restriction>
 </xs:simpleType>
 
 <xs:simpleType name="atype_step_exp_vec_val">
 	<xs:restriction base="xs:string">
-		<xs:pattern value="[-hlHLZX]+"/>
+		<xs:pattern value="[ hlHLZX-]+"/>
 	</xs:restriction>
 </xs:simpleType>
 <!-- END: testbench/testcases/test/step/exp -->
@@ -277,7 +277,7 @@
 
 <xs:simpleType name="comm_atype_val_vec">
 	<xs:restriction base="xs:string">
-		<xs:pattern value="[01-]+"/>
+		<xs:pattern value="[ 01-]+"/>
 	</xs:restriction>
 </xs:simpleType>
 <!-- END: COMMON SIMPLE TYPES -->

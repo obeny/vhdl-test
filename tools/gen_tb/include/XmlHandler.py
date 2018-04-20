@@ -226,7 +226,7 @@ class XmlHandler:
 
 		signal.size = int(xml_node.attrib['size'])
 		signal.ascending = xml_node.attrib['order'] == "asc"
-		signal.value = xml_node.attrib.get('val', '')
+		signal.value = xml_node.attrib.get('val', '').replace(" ", "")
 		return signal
 
 	def __buildTestcases(self):
@@ -307,7 +307,7 @@ class XmlHandler:
 		name = xml_node.attrib['sig']
 		if not self.meta.signals.getSignal(name):
 			log.error("fillTestStepSet: signal=\'{0:s}\' doesn't exist".format(name))
-		value = xml_node.attrib['val']
+		value = xml_node.attrib['val'].replace(" ", "")
 		step.set_list[name] = value
 		log.info("fillTestStepSet: built step for signal={0:s} with value={1:s}".format(name, value))
 
@@ -315,7 +315,7 @@ class XmlHandler:
 		name = xml_node.attrib['sig']
 		if not self.meta.signals.getSignal(name):
 			log.error("fillTestStepExpect: signal=\'{0:s}\' doesn't exist".format(name))
-		value = xml_node.attrib['val']
+		value = xml_node.attrib['val'].replace(" ", "")
 		step.expect_list[name] = value
 		log.info("fillTestStepExpect: built step for signal={0:s} with value={1:s}".format(name, value))
 
