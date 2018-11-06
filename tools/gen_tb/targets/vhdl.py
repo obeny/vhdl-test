@@ -536,7 +536,7 @@ class TestWriter:
 			self.testbench_duration += testcase_duration
 
 			if test.clock_reset:
-				self.testbench_duration += UT.TimeUtils.timeValueInNsFromTime(self.component.interval)
+				self.testbench_duration += UT.TimeUtils.timeValueInNsFromTime(self.component.interval) + 1
 
 			marker = "{0:d} ns".format(self.testbench_duration + 1)
 			self.simWriter.insertMarker(marker)
