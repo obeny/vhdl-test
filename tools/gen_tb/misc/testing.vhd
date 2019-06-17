@@ -27,7 +27,9 @@ package testing is
 		testcase_num : in INTEGER
 	);
 
-	procedure tb_tc_footer;
+	procedure tb_tc_footer(
+		failed_vectors : in INTEGER
+	);
 
 	procedure tb_build_filename_array(
 		path : in STRING;
@@ -55,7 +57,7 @@ package testing is
 		ports : in STD_LOGIC_VECTOR;
 		testcase_num : in INTEGER;
 		vector_num : in INTEGER;
-		fail_count : inout INTEGER
+		fail : inout BOOLEAN
 	);
 end testing;
 
@@ -110,8 +112,11 @@ package body testing is
 		report " -----";
 	end tb_tc_header;
 
-	procedure tb_tc_footer is
+	procedure tb_tc_footer (
+		failed_vectors : in INTEGER
+	) is
 	begin
+		report "TESTCASE FINISHED, vectors failed: " & INTEGER'IMAGE(failed_vectors);
 		report " _________________________________________________";
 	end tb_tc_footer;
 
@@ -166,14 +171,13 @@ package body testing is
 		ports : in STD_LOGIC_VECTOR;
 		testcase_num : in INTEGER;
 		vector_num : in INTEGER;
-		fail_count : inout INTEGER
+		fail : inout BOOLEAN
 	) is
-		variable fail : BOOLEAN;
 	begin
+		fail := false;
 		check_ports(expect_vector, ports, fail, testcase_num);
 		if fail = true then
 			report "!!! expectations are not met in vector: " & INTEGER'IMAGE(vector_num) severity error;
-			fail_count := fail_count + 1;
 		end if;
 	end check_expectations;
 end testing;

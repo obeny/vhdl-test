@@ -83,6 +83,8 @@ System requirements:
 
 Version information:
  0.6 - changed syntax, improved reporting, bugfixes
+  * added report with failed vectors during testcase execution
+  * fixed calculation of failed testcases at the end of testbench
   * corrected calculating testcase duration if clock_disable is set
   * added missing delay for clock reset
   * 'pos' parameter is not needed anymore

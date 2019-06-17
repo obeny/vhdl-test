@@ -426,7 +426,9 @@ class TestWriter:
 		self.file.write("\t\tvariable set_vector : STD_LOGIC_VECTOR ((SIGNAL_COUNT-1) downto 0);\n")
 		self.file.write("\t\tvariable expect_vector : STD_LOGIC_VECTOR ((SIGNAL_COUNT-1) downto 0);\n")
 		self.file.write("\t\tvariable vector_num : INTEGER := 0;\n")
-		self.file.write("\t\tvariable fail_count : INTEGER := 0;\n")
+		self.file.write("\t\tvariable fail : BOOLEAN := false;\n")
+		self.file.write("\t\tvariable failed_vectors : INTEGER := 0;\n")
+		self.file.write("\t\tvariable tb_fail_count : INTEGER := 0;\n")
 		self.file.write("\t\tvariable vector_interval : TIME;\n")
 		self.file.write("\n")
 		self.file.write("\t\tvariable filename_array : T_FILENAME;\n")
@@ -511,6 +513,7 @@ class TestWriter:
 			self.file.write("\t\t\tend case;\n\n")
 
 		self.file.write("\t\t\ttb_tc_header(testname_array, testcase_num);\n")
+		self.file.write("\t\t\tfailed_vectors := 0;\n\n")
 		self.file.write("\t\t\tTC_NUM <= testcase_num;\n\n")
 		self.file.write("\t\t\tinit_set_vector(def_set_vector, teststate_array(testcase_num), set_vector);\n")
 		self.file.write("\t\t\tvector_file_open(filename_array(testcase_num), vector_file);\n\n")
@@ -520,10 +523,16 @@ class TestWriter:
 		self.file.write("\t\t\t\texit when eof = true;\n\n")
 		self.file.write("\t\t\t\tports <= set_ports(set_vector);\n")
 		self.file.write("\t\t\t\twait for vector_interval;\n\n")
-		self.file.write("\t\t\t\tcheck_expectations(expect_vector, ports, testcase_num, vector_num, fail_count);\n")
+		self.file.write("\t\t\t\tcheck_expectations(expect_vector, ports, testcase_num, vector_num, fail);\n")
+		self.file.write("\t\t\t\tif fail = true then\n")
+		self.file.write("\t\t\t\t\tfailed_vectors := failed_vectors + 1;\n")
+		self.file.write("\t\t\t\tend if;\n")
 		self.file.write("\t\t\t\tvector_num := vector_num + 1;\n")
 		self.file.write("\t\t\tend loop;\n\t\t\tfile_close(vector_file);\n");
-		self.file.write("\t\t\ttb_tc_footer;\n")
+		self.file.write("\t\t\ttb_tc_footer(failed_vectors);\n")
+		self.file.write("\t\t\tif failed_vectors > 0 then\n")
+		self.file.write("\t\t\t\tfailed_vectors := failed_vectors + 1;\n")
+		self.file.write("\t\t\tend if;\n")
 		self.file.write("\t\tend loop;\n\n")
 
 		test_count = len(self.testcases.list)
@@ -545,7 +554,7 @@ class TestWriter:
 
 
 		duration = str(self.testbench_duration) + " ns"
-		self.file.write("\t\t-- TESTBENCH END\n\t\ttb_end(fail_count);\n\t\tTC_NUM <= 255;\n")
+		self.file.write("\t\t-- TESTBENCH END\n\t\ttb_end(tb_fail_count);\n\t\tTC_NUM <= 255;\n")
 		self.file.write("\t\twait;\n\n")
 		self.file.write("\t\t-- TIME DURATION: {0:s}\n".format(duration))
 		self.file.write("\tend process;\nend;\n")
