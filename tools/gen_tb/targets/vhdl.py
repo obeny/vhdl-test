@@ -531,7 +531,7 @@ class TestWriter:
 		self.file.write("\t\t\tend loop;\n\t\t\tfile_close(vector_file);\n");
 		self.file.write("\t\t\ttb_tc_footer(failed_vectors);\n")
 		self.file.write("\t\t\tif failed_vectors > 0 then\n")
-		self.file.write("\t\t\t\tfailed_vectors := failed_vectors + 1;\n")
+		self.file.write("\t\t\t\ttb_fail_count := tb_fail_count + 1;\n")
 		self.file.write("\t\t\tend if;\n")
 		self.file.write("\t\tend loop;\n\n")
 
