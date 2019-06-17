@@ -82,7 +82,9 @@ System requirements:
  * Python-3.0.1+
 
 Version information:
- 0.6 - changed syntax
+ 0.6 - changed syntax, improved reporting, bugfixes
+  * corrected calculating testcase duration if clock_disable is set
+  * added missing delay for clock reset
   * 'pos' parameter is not needed anymore
   * in/inout set/exp vectors values can be separated with space
   * default values for inputs are mandatory
