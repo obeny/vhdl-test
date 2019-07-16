@@ -161,4 +161,10 @@ hw:
 clean:
 	rm -rf target_sim target_hw $(DEPS_DIR) $(LOGS_DIR)
 
-.PHONY: all clean  xml_check sim_testing sim_vhd sim_prj sim_exe sim sim_run_% sim_run_gui_% hw
+clean_all: clean
+	$(shell cd hwsim/platforms/stm32_maple_mini; make clean)
+
+dist_clean: clean_all
+	rm -rf scripts/* tb/* src/* hwsim/platforms/stm32_maple_mini/lib_stm32
+
+.PHONY: all clean clean_all dist_clean  xml_check sim_testing sim_vhd sim_prj sim_exe sim sim_run_% sim_run_gui_% hw

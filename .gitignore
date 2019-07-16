@@ -1,10 +1,13 @@
 # component information
-scripts
-src
-tb
+scripts/*
+src/*
+tb/*
 
 # build results
 target_sim
 .deps
 logs
 __pycache__
+
+# hwsim externals
+hwsim/platforms/stm32_maple_mini/lib_stm32

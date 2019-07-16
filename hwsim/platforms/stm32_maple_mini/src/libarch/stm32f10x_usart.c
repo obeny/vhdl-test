@@ -1,0 +1,1 @@
+../../lib_stm32/vendor/STM32F10x_StdPeriph_Lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_usart.c

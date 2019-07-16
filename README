@@ -82,6 +82,10 @@ System requirements:
  * Python-3.0.1+
 
 Version information:
+ 0.7 - add hwsim support
+  * added hwsim basic framework
+  * added example hwsim executor based on stm32 mapple-mini board (platform: stm32_maple_mini)
+
  0.6 - changed syntax, improved reporting, bugfixes
   * added report with failed vectors during testcase execution
   * fixed calculation of failed testcases at the end of testbench

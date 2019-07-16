@@ -1,0 +1,1 @@
+../../lib_stm32/lib_mcu_noarch/sync_timer/sync_timer.h
