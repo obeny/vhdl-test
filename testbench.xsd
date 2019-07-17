@@ -146,6 +146,7 @@
 		<xs:element name="seq" type="type_test_seq"/>
 		<xs:element name="script" type="type_test_script"/>
 	</xs:choice>
+	<xs:attribute name="short_name" type="atype_test_short_name" use="optional"/>
 	<xs:attribute name="name" type="atype_test_name" use="required"/>
 	<xs:attribute name="state" type="atype_test_state" use="optional"/>
 	<xs:attribute name="clock_reset" type="comm_atype_label" use="optional"/>
@@ -165,6 +166,13 @@
 		<xs:maxLength value="128"/>
 	</xs:restriction>
 </xs:simpleType>
+
+<xs:simpleType name="atype_test_short_name">
+	<xs:restriction base="xs:string">
+		<xs:maxLength value="32"/>
+	</xs:restriction>
+</xs:simpleType>
+
 
 <xs:complexType name="type_test_step">
 	<xs:sequence>

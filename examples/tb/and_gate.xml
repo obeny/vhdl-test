@@ -16,7 +16,7 @@
 
 	<testcases>
 		<!-- TEST 1: simple -->
-		<test name="TEST1: a=0, b=0">
+		<test name="TEST1: a=0, b=0" short_name="TEST1">
 			<step>
 				<exp sig="z" val="l"/>
 			</step>

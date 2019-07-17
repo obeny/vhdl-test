@@ -61,10 +61,43 @@ class VectorWriter:
 				log.error("invalid test command found")
 
 		self.file.close()
-		return time_duration, file_name
+		return time_duration
+
+	def generateDefaultVector(self):
+		file_name = self.getTestDefaultVectorFileName()
+
+		log.info("generateDefaultVector: " + file_name)
+		file = open(file_name, 'w')
+		file.write(self.header)
+
+		file.write("     ")
+		for signal in self.signals.list:
+			if signal.role != 'clock':
+				file.write(" ")
+
+				if type(signal) is CLS.SignalVector:
+					if signal.role == 'out':
+						for pos in range(signal.size):
+							value += '-'
+					else:
+						value = signal.value
+					file.write("{0:s}".format(value))
+				elif type(signal) == CLS.Signal:
+					if signal.role == 'out':
+						value = '-'
+					else:
+						value = signal.value
+					file.write("{0:s}".format(value))
+				else:
+					log.error("generateDefaultVector: unexpected signal type")
+
+		self.file.close()
 
 	def getTestVectorFileName(self, number):
 		return "{0:s}/{1:s}_{2:02d}.vec".format(self.tc_dir, self.component.name, number)
+
+	def getTestDefaultVectorFileName(self):
+		return "{0:s}/{1:s}_df.vec".format(self.tc_dir, self.component.name)
 
 # PRIVATE methods
 	def __buildHeader(self):

@@ -158,12 +158,11 @@ It is not possible on hardware target.
 
 TODO
 ====
+ * HW target refactoring
  * binary/hex signal default value
  * update docs
  ? Altera IDE/modelsim support
- ? Post-fit simulation
  * refactoring and cleanup
- * HW target support
 
 TEST VECTOR FORMAT:
 ===================
@@ -373,6 +372,7 @@ LEVEL 2 - testcases:
 test - contains information about single testcase (3 level, under testcases)
 attrs:
  * name - mandatory - testcase name
+ * short_name - optional - shortened version of testcase name, use by hwsim
  * reset_clock - optional - clock which will be reset for given test
  * state - optional - possible value: "remember"
   remember: state of inputs is inherited from previous testcase

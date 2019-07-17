@@ -227,10 +227,6 @@ class TestWriter:
 		self.__prepareSignals()
 		self.__prepareUut()
 		self.__prepareClocks()
-
-		# self.__prepareTestcases()
-		# self.__prepareStimProcEnd()
-
 		self.__prepareStimProc()
 
 		self.simWriter.insertRunCommand(self.getTestbenchDuration())
@@ -238,6 +234,7 @@ class TestWriter:
 		self.configWriter.run()
 
 		self.file.close()
+		self.vectorWriter.generateDefaultVector()
 
 	def getTestbenchDuration(self):
 		return "{0:d} ns".format(self.testbench_duration)
@@ -541,7 +538,7 @@ class TestWriter:
 			test_number = test_num + 1
 
 			test = self.testcases.list[test_num]
-			testcase_duration, vector_file = self.vectorWriter.generateVector(test_number, test)
+			testcase_duration =  self.vectorWriter.generateVector(test_number, test)
 			self.testbench_duration += testcase_duration
 
 			if test.clock_reset:
