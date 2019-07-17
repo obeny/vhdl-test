@@ -28,12 +28,13 @@ class XmlHandler:
 		self.backendHandler = backend_handler
 		self.current_pos = 0
 
-	def buildMeta(self):
+	def buildMeta(self, out_dir):
 		self.meta = CLS.Meta()
 		self.meta.signals = self.__buildSignals()
 		self.meta.component = self.__buildComponent()
 		self.meta.testcases = self.__buildTestcases()
 		self.meta.backend_data = self.backendHandler.buildData(self.dom_root.find('backends'))
+		self.meta.out_dir = out_dir
 
 		# do some sanity checks not covered by XSD
 		self.__sanityCheck(self.meta)

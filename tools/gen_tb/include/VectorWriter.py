@@ -7,16 +7,11 @@ import Utils as UT
 # VectorWriter class - builds vector files for testbenches
 class VectorWriter:
 	def __init__(self, meta, out, scripts):
-		self.tc_dir = ""
-		if os.path.isabs(out):
-			self.tc_dir = os.path.dirname(out)
-		else:
-			self.tc_dir = "{0:s}/{1:s}".format(os.getcwd(), os.path.dirname(out))
-		self.tc_dir = os.path.realpath(self.tc_dir)
-
 		self.component = meta.component
 		self.signals = meta.signals
 		self.scripts_dir = scripts
+		self.tc_dir = meta.getTestbenchDir()
+
 		self.header = self.__buildHeader()
 
 # PUBLIC methods

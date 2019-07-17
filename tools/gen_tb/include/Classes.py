@@ -1,3 +1,5 @@
+import os
+
 #
 # GLOBAL DEFINITIONS
 # ===========
@@ -14,6 +16,16 @@ class Meta:
 	signals = None
 	testcases = None
 	backend_data = None
+	out_dir = None
+
+	def getTestbenchDir(self):
+		tb_dir = ""
+		if os.path.isabs(self.out_dir):
+			tb_dir = os.path.dirname(self.out_dir)
+		else:
+			tb_dir = "{0:s}/{1:s}".format(os.getcwd(), os.path.dirname(self.out_dir))
+		tb_dir = os.path.realpath(tb_dir)
+		return tb_dir
 
 # COMPONENT information
 class Component:

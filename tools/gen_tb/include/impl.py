@@ -16,7 +16,7 @@ class AppGenTb:
 
 		backend = TW.BackendDataHandler()
 		xmlHandler = XMLH.XmlHandler(self.xml, backend)
-		self.meta = xmlHandler.buildMeta()
+		self.meta = xmlHandler.buildMeta(self.out)
 
 		self.vectorWriter = VW.VectorWriter(self.meta, self.out, self.scripts)
 		self.testWriter = TW.TestWriter(self.meta, self.out, self.vectorWriter)

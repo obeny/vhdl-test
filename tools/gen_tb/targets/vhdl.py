@@ -200,6 +200,7 @@ class BackendSimWriter:
 # class TestWriter - builds test for given target (vhdl)
 class TestWriter:
 	def __init__(self, meta, file, vector_writer):
+		self.meta = meta
 		self.component = meta.component
 		self.signals = meta.signals
 		self.testcases = meta.testcases
@@ -222,6 +223,7 @@ class TestWriter:
 		self.simWriter.insertHeader()
 		self.simWriter.insertSignals()
 
+		self.__generateMetaInfoFile()
 		self.__prepareLibraries()
 		self.__prepareComponent()
 		self.__prepareSignals()
@@ -255,6 +257,16 @@ class TestWriter:
 		else:
 			range_str = "({0:d} downto {1:d})".format(higher_bound, lower_bound)
 		return range_str
+
+	def __getMetaInfoFileName(self):
+		return "{0:s}/{1:s}.mi".format(self.meta.getTestbenchDir(), self.component.name)
+
+	def __generateMetaInfoFile(self):
+		mi_file_name = self.__getMetaInfoFileName()
+		file = open(mi_file_name, 'w')
+		file.write("s:{0:d} t:{1:d} {2:s}"\
+			.format(self.meta.signals.count, self.meta.testcases.getTestcaseCount(), self.meta.component.interval))
+		file.close()
 
 	def __prepareLibraries(self):
 		self.file.write("library IEEE;\n")
