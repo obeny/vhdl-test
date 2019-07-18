@@ -7,7 +7,7 @@ verbose=False
 python_req_version = (3, 0, 1)
 exec_name=os.path.realpath(sys.argv[0])
 
-app_version = "0.6"
+app_version = "0.7"
 app_targets_dir = "/targets/"
 app_src_dir = "/include/"
 app_dir = os.path.dirname(exec_name)
@@ -15,7 +15,7 @@ app_prog = os.path.splitext(os.path.basename(exec_name))[0]
 
 app_description = "Generates various types of testbenches for VHDL components according to description written\n\
 in XML. Built testing sequences can be run in simulator or hardware environment."
-app_epilog = app_prog + " version: " + app_version + "\nCopyright (C) 2015-2018 - Marcin 'obeny' Benka <obeny@obeny.net>\n\
+app_epilog = app_prog + " version: " + app_version + "\nCopyright (C) 2015-2019 - Marcin 'obeny' Benka <obeny@obeny.net>\n\
 This program may be freely redistributed under the terms of the GNU GPL v2"
 
 
