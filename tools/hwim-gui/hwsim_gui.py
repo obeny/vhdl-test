@@ -43,32 +43,47 @@ class Metadata:
 	interval = None
 	comp_type = None
 
-	def __init__(self, md_file):
-		md_file = open(md_file)
+	def __init__(self, fpath):
+		md_file = open(fpath)
 		md = md_file.readline().split(';')
-		self.signals = int(md[0].split(':')[1])
-		self.testcases = int(md[1].split(':')[1])
-		self.interval = md[2]
 		md_file.close()
+		self.comp_type = md[0].split(':')[1]
+		self.signals = int(md[1].split(':')[1])
+		self.testcases = int(md[2].split(':')[1])
+		self.interval = md[3]
 
 	def __str__(self):
-		return "signals: {0:d}; testcases: {1:d}; interval: {2:d}ns"\
-			.format(self.signals, self.testcases, intervalToNs(self.interval))
+		return "comp_type: {0:s}; signals: {1:d}; testcases: {2:d}; interval: {3:d}ns"\
+			.format(self.comp_type, self.signals, self.testcases, intervalToNs(self.interval))
+
+class Vector:
+	testcase = None
+	content = None
+	interval = None
+
+	def __str__(self):
+		return "testcase: {0:d}; content: {1:s}; interval: {2:d}ns"\
+			.format(self.testcase, self.content, self.interval)
 
 #
 # IMPLEMENTATION
 # ==============
 class Impl:
 	def __init__(self, target_sim_path, comm, comp, verbose):
+		log.setVerbose(verbose)
+
 		self.comp = comp
 		self.target_sim_path = target_sim_path
-		log.setVerbose(verbose)
 
 		self.metadata_file_path = target_sim_path + "/" + comp + ".mi"
 		self.map_file_path = target_sim_path + "/" + comp + ".map"
+		self.def_vector_path = target_sim_path + "/" + comp + "_df.vec"
 
 		if not os.path.exists(self.metadata_file_path):
 			log.error("Couldn't find metadata file: " + self.metadata_file_path)
+
+		if not os.path.exists(self.def_vector_path):
+			log.error("Couldn't find default vector file: " + self.def_vector_path)
 
 		if not os.path.exists(self.map_file_path):
 			log.error("Couldn't find map file: " + self.map_file_path)
@@ -81,25 +96,61 @@ class Impl:
 		if not self.comm.isOpen():
 			log.error("Couldn't open serial port: " + comm)
 
+	def __loadDefaultVector(self, fpath):
+		dv_file = open(fpath)
+		for line in dv_file:
+			if line.startswith("#"):
+				continue
+		dv_file.close()
+
+		line = line.replace('#', '').replace(' ', '')
+		def_vec = Vector()
+		def_vec.testcase = 0xFF
+		def_vec.content = line
+		def_vec.interval = 0xFFFF
+
+		return def_vec
+
+	def __loadSignalMap(self, fpath):
+		map_file = open(fpath)
+		line = map_file.readline()
+		map_file.close()
+
+		signals = line.split(' ')
+		count = len(signals)
+		sig_map = []
+		for s in range(count):
+			sig_map.append(signals[s].split(':')[1])
+
+		return sig_map
+
+	def communicate(self):
+		log.info("Resetting simulator")
+		self.comm.write(b'RR')
+		print(self.comm.read(10))
+
 	def run(self):
 		log.info("Loading metadata")
 		self.md = Metadata(self.metadata_file_path)
 		log.info("Metadata = " + str(self.md))
 
-		log.info("Building vector list")
+		log.info("Loading default vector")
+		self.dv = self.__loadDefaultVector(self.def_vector_path)
+		log.info("DefVector = " + str(self.dv))
+
+		log.info("Loading signal map")
+		self.sm = self.__loadSignalMap(self.map_file_path)
+		log.info("SignalMap = " + str(self.sm))
+
+		log.info("Building vector file list")
 		vec_list = glob.glob(self.target_sim_path + "/" + self.comp + "*.vec")
 		for vec in vec_list:
 			if not vec.find("df.vec") == -1:
 				vec_list.remove(vec)
 		vec_list.sort()
-		self.vec_list = vec_list
+		log.info("VectorFiles = " + str(vec_list))
 
-		log.info("Vectors: " + str(self.vec_list))
-
-		log.info("Resetting simulator")
-		self.comm.write(b'RR')
-		print(self.comm.read(10))
-		log.info("Mapping singals")
+		self.communicate()
 
 #
 # RUN
