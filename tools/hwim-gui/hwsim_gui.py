@@ -31,8 +31,21 @@ def intervalToNs(str):
 
 	switcher = {
 		"ns": 1,
-		"ms": 1000,
-		"s": 1000 * 1000
+		"us": 1000,
+		"ms": 1000 * 1000,
+		"s":  1000 * 1000 * 1000
+	}
+	return switcher.get(mul) * value
+
+def intervalStrToNs(str):
+	mul = str[0]
+	value = int(str[1:4])
+
+	switcher = {
+		"n": 1,
+		"u": 1000,
+		"m": 1000 * 1000,
+		"s": 1000 * 1000 * 1000
 	}
 	return switcher.get(mul) * value
 
@@ -68,7 +81,7 @@ class Communication:
 		self.impl = impl
 
 		try:
-			self.comm = serial.Serial(port=port_name, baudrate=115200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=1)
+			self.comm = serial.Serial(port=port_name, baudrate=115200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=0.2)
 		except:
 			log.error("Couldn't find serial port: " + comm)
 
@@ -98,7 +111,7 @@ class Communication:
 
 		func = switcher.get(command)
 		func()
-		resp = self.comm.read(100)
+		resp = self.comm.read(1)
 		command_str = str(command).split('.')[1]
 		if resp == b'O':
 			log.info("Request '{0:s}' OK".format(command_str))
@@ -149,6 +162,18 @@ class Communication:
 	def __sendVector(self):
 		log.info("Sending vector")
 
+		bytelist = []
+		bytelist.append(int(HwSimCommand.CFG_VECTOR))
+		bytelist.append(self.impl.vs[self.cur_vec].testcase)
+		for e in self.impl.vs[self.cur_vec].interval.to_bytes(4, byteorder="little"):
+			bytelist.append(e)
+		for s in self.impl.sm:
+			bytelist.append(ord(self.impl.dv.content[s]))
+		bytelist.append(self.__checkSum(bytelist))
+
+		log.info("Vector frame = " + str(bytelist))
+		self.comm.write(bytearray(bytelist))
+
 	def initSim(self):
 		if not self.__sendCmd(CommandType.RESET):
 			return False
@@ -156,6 +181,14 @@ class Communication:
 			return False
 		if not self.__sendCmd(CommandType.DEF_VECTOR):
 			return False
+		return True
+
+	def sendVectors(self):
+		self.cur_vec = 0
+		for n in range(self.impl.md.vectors):
+			if not self.__sendCmd(CommandType.CFG_VECTOR):
+				return False
+			self.cur_vec += 1
 		return True
 
 class Metadata:
@@ -242,6 +275,25 @@ class Impl:
 
 		return sig_map
 
+	def __loadVectors(self, files):
+		vs = []
+
+		for f in files:
+			tc = int(f[len(f)-6:len(f)-4])
+			vf = open(f)
+			for l in vf:
+				if l.startswith("#"):
+					continue
+				l = l.lstrip().replace("\n", "")
+				interval = intervalStrToNs(l[0:4])
+				v = Vector()
+				v.testcase = tc
+				v.content = l[5:].replace(" ", "")
+				v.interval = interval
+				vs.append(v)
+			vf.close()
+		return vs
+
 	def run(self):
 		log.info("Loading metadata")
 		self.md = Metadata(self.metadata_file_path)
@@ -264,13 +316,22 @@ class Impl:
 		log.info("VectorFiles = " + str(vec_list))
 
 		log.info("Building vectors list")
-		log.info("NOT IMPLEMENTED")
+		self.vs = self.__loadVectors(vec_list)
+		log.info("Vectors:")
+		for v in self.vs:
+			log.info(str(v))
+		if not len(self.vs) == self.md.vectors:
+			log.error("Vectors count mismatch: {0:d} != {1:d}".format(len(self.vs), self.md.vectors))
 
-		if self.communication.initSim():
-			log.info("HW simulator initialization OK")
-		else:
-			return
+		if not self.communication.initSim():
+			log.error("HW simulator initialization failed")
+		log.info("HW simulator initialization OK")
 
+		if not self.communication.sendVectors():
+			log.error("Couldn't send vectors")
+		log.info("HW simulator sending vectors OK")
+
+		return
 #
 # RUN
 # ===

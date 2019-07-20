@@ -11,12 +11,12 @@ def error(msg):
 	sys.exit(-2)
 
 def fatal(msg):
-	print ("FATAL: " + msg)
+	print("FATAL: " + msg)
 
 def info(msg):
 	if verbose:
-		print("INFO: " + msg)
+		print("INFO:  " + msg)
 
 def note(msg):
 	if verbose:
-		print("NOTE: " + msg)
+		print("NOTE:  " + msg)
