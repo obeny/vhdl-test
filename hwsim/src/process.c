@@ -19,12 +19,6 @@ void initRuntimeData(void)
 }
 
 // --------------------------------------------------------------------------
-void initSignalMap(void)
-{
-    memset(rtdata.signal_map, 0xFF, sizeof(rtdata.signal_map));
-}
-
-// --------------------------------------------------------------------------
 bool executeTestVector(void)
 {
     if (0 == rtdata.cur_vector)
@@ -58,7 +52,7 @@ static void executeVector(void)
 static void executeDefaultVector(void)
 {
     for (UINT8 signal = 0; signal < rtdata.signals_cnt; ++signal)
-        processSetSignal(signal, rtdata.vectors[VECTOR_DEFAULTS].content[signal]);
+        processSetSignal(signal, rtdata.vectors[VECTOR_DEFAULTS_POS].content[signal]);
 }
 
 // --------------------------------------------------------------------------
@@ -70,8 +64,8 @@ static void processSetSignal(UINT8 pos, BYTE val)
             break;
         case E_SIGVAL_SET_L:
         case E_SIGVAL_SET_H:
-            setPinDir(rtdata.signal_map[pos], E_PINDIR_OUT);
-            setPinValue(rtdata.signal_map[pos], (E_SIGVAL_SET_L == val)?(false):(true));
+            setPinDir(pos, E_PINDIR_OUT);
+            setPinValue(pos, (E_SIGVAL_SET_L == val)?(false):(true));
             break;
     }
 }
@@ -85,8 +79,8 @@ static bool processExpSignal(UINT8 pos, BYTE val)
             break;
         case E_SIGVAL_EXP_L:
         case E_SIGVAL_SET_H:
-            setPinDir(rtdata.signal_map[pos], E_PINDIR_IN);
-            return (getPinValue(rtdata.signal_map[pos]) == (E_SIGVAL_EXP_L == val)?(false):(true));
+            setPinDir(pos, E_PINDIR_IN);
+            return (getPinValue(pos) == (E_SIGVAL_EXP_L == val)?(false):(true));
     }
 
     return (true);

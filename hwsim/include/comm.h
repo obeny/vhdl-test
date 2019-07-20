@@ -10,8 +10,6 @@
 enum command_e
 {
     E_CMD_RESET = 'r',
-    E_CMD_SET_COMP_TYPE = 't',
-    E_CMD_MAP_SIGNAL = 'm',
     E_CMD_SET_TC_NAME = 'n',
     E_CMD_SEND_REPORT = 's',
     E_CMD_SET_META = 'i',

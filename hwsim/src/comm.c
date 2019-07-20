@@ -15,9 +15,7 @@ extern st_rtdata_t rtdata;
 
 // static functions
 static bool cmdReset(void);
-static bool cmdSetCompType(void);
 static bool cmdTestcaseName(void);
-static bool cmdMapSignal(void);
 static bool cmdSendReport(void);
 static bool cmdSetMeta(void);
 static bool cmdConfigVector(void);
@@ -36,12 +34,8 @@ bool handleCommand(void)
     {
         case E_CMD_RESET:
             return cmdReset();
-        case E_CMD_SET_COMP_TYPE:
-            return cmdSetCompType();
         case E_CMD_SET_TC_NAME:
             return cmdTestcaseName();
-        case E_CMD_MAP_SIGNAL:
-            return cmdMapSignal();
         case E_CMD_CFG_VECTOR:
             return cmdConfigVector();
         case E_CMD_EXECUTE:
@@ -65,30 +59,9 @@ static bool cmdReset(void)
     {
         resetIo();
         initRuntimeData();
-        initSignalMap();
         usartSendByte(&usart_comm, 'O');
         return (true);
     }
-    usartSendByte(&usart_comm, 'F');
-    return (false);
-}
-
-// --------------------------------------------------------------------------
-static bool cmdSetCompType(void)
-{
-    if (!usartRead(&usart_comm, comm_buffer+1, 2, COMM_TIMEOUT))
-        goto fail;
-
-    if (checksum8Bit(comm_buffer, 2) == comm_buffer[2])
-    {
-        if (comm_buffer[1] == E_COMP_TYPE_CONCURRENT || comm_buffer[1] == E_COMP_TYPE_SEQUENTIAL)
-        {
-            rtdata.comp_type = comm_buffer[1];
-            usartSendByte(&usart_comm, 'O');
-            return (true);
-        }
-    }
-fail:
     usartSendByte(&usart_comm, 'F');
     return (false);
 }
@@ -117,35 +90,19 @@ fail:
 }
 
 // --------------------------------------------------------------------------
-static bool cmdMapSignal(void)
-{
-    if (!usartRead(&usart_comm, comm_buffer+1, 3, COMM_TIMEOUT))
-        goto fail;
-
-    if (checksum8Bit(comm_buffer, 3) == comm_buffer[3])
-    {
-        rtdata.signal_map[comm_buffer[1]] = comm_buffer[2];
-        usartSendByte(&usart_comm, 'O');
-        return (true);
-    }
-fail:
-    usartSendByte(&usart_comm, 'F');
-    return (false);
-}
-
-// --------------------------------------------------------------------------
 static bool cmdSetMeta(void)
 {
-    if (!usartRead(&usart_comm, comm_buffer+1, 12, COMM_TIMEOUT))
+    if (!usartRead(&usart_comm, comm_buffer+1, 13, COMM_TIMEOUT))
         goto fail;
 
-    if (checksum8Bit(comm_buffer, 12) == comm_buffer[12])
+    if (checksum8Bit(comm_buffer, 13) == comm_buffer[13])
     {
-        rtdata.testcase_cnt = comm_buffer[1];
-        rtdata.vector_cnt = comm_buffer[2];
-        rtdata.signals_cnt = comm_buffer[3];
-        rtdata.clock_period = comm_buffer[4] | comm_buffer[5] << 8 | comm_buffer[6] << 16 | comm_buffer[7] << 24;
-        rtdata.interval = comm_buffer[8] | comm_buffer[9] << 8 | comm_buffer[10] << 16 | comm_buffer[11] << 24;
+        rtdata.comp_type = comm_buffer[1];
+        rtdata.testcase_cnt = comm_buffer[2];
+        rtdata.vector_cnt = comm_buffer[3];
+        rtdata.signals_cnt = comm_buffer[4];
+        rtdata.clock_period = comm_buffer[5] | comm_buffer[6] << 8 | comm_buffer[7] << 16 | comm_buffer[8] << 24;
+        rtdata.interval = comm_buffer[9] | comm_buffer[10] << 8 | comm_buffer[11] << 16 | comm_buffer[12] << 24;
 
         usartSendByte(&usart_comm, 'O');
         return (true);
@@ -182,25 +139,25 @@ static bool cmdSendReport(void)
 // --------------------------------------------------------------------------
 static bool cmdConfigVector(void)
 {
-    UINT8 signal_cnt = rtdata.signals_cnt;
-    UINT8 vector_size = sizeof(rtdata.vectors[0].interval);
-    UINT8 payload_size = vector_size + signal_cnt;
     UINT8 vector_num;
+    UINT8 payload_size = sizeof(vector_num) + sizeof(rtdata.vectors[0].interval) + rtdata.signals_cnt ;
     UINT32 interval;
 
-    if (!usartRead(&usart_comm, comm_buffer+1, payload_size, COMM_TIMEOUT))
+    if (!usartRead(&usart_comm, comm_buffer+1, payload_size+1, COMM_TIMEOUT))
         goto fail;
 
     if (checksum8Bit(comm_buffer, payload_size+1) == comm_buffer[payload_size+1])
     {
-        interval = comm_buffer[2] | comm_buffer[3] << 8 | comm_buffer[4] << 16 | comm_buffer[5] << 24;
         vector_num = comm_buffer[1];
+        interval = comm_buffer[2] | comm_buffer[3] << 8 | comm_buffer[4] << 16 | comm_buffer[5] << 24;
 
         if (!((vector_num == VECTOR_DEFAULTS) && (VECTOR_DEFAULT_INTVAL == interval)))
         {
             if (vector_num > MAX_VECTORS)
                 goto fail;
         }
+        else
+            vector_num = VECTOR_DEFAULTS_POS;
 
         memcpy(&rtdata.vectors[vector_num].content, &comm_buffer[5], sizeof(rtdata.vectors[0].content));
         rtdata.vectors[vector_num].interval = interval;

@@ -5,7 +5,8 @@
 #include "platform.h"
 
 #define SIGNAL_NO_MAPPING 0xFF
-#define VECTOR_DEFAULTS (MAX_VECTORS - 1)
+#define VECTOR_DEFAULTS_POS (MAX_VECTORS - 1)
+#define VECTOR_DEFAULTS 0xFF
 #define VECTOR_DEFAULT_INTVAL 0xFFFFFFFFUL
 
 typedef enum
@@ -18,7 +19,7 @@ typedef struct
 {
     UINT32 interval;
     BYTE content[MAX_SIGNALS];
-} vector_t;
+} __packed vector_t;
 
 typedef struct
 {
@@ -28,7 +29,6 @@ typedef struct
     UINT8 testcase_cnt;
     UINT8 broken_frames;
     UINT8 failed_testcase_cnt;
-    UINT8 signal_map[MAX_SIGNALS];
     UINT8 failed_vectors_cnt[MAX_TESTCASES];
     BYTE tc_name[MAX_TESTCASES][TC_NAME_LEN];
     vector_t vectors[MAX_VECTORS];
@@ -40,7 +40,6 @@ typedef struct
 } st_rtdata_t;
 
 void initRuntimeData(void);
-void initSignalMap(void);
 
 bool executeTestVector(void);
 

@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 
-import glob
 import argparse
+import glob
 import os
 import serial
 import sys
 
 import log
 
+from enum import Enum
+from enum import IntEnum
+
 verbose=False
-python_req_version = (3, 0, 1)
 exec_name=os.path.realpath(sys.argv[0])
 
 app_version = "0.7"
@@ -35,13 +37,134 @@ def intervalToNs(str):
 	return switcher.get(mul) * value
 
 #
+# ENUMS
+# =====
+class CommandType(IntEnum):
+	RESET = 0
+	SET_TC_NAME = 1
+	SEND_REPORT = 2
+	SET_META = 3
+	CFG_VECTOR = 4
+	DEF_VECTOR = 5
+	EXECUTE = 6
+
+class HwSimCommand(IntEnum):
+	RESET = ord('r')
+	SET_TC_NAME = ord('n')
+	SEND_REPORT = ord('s')
+	SET_META = ord('i')
+	CFG_VECTOR = ord('v')
+	EXECUTE = ord('e')
+
+class CompType(IntEnum):
+	CONCURRENT = 0
+	SEQUENTIAL = 1
+
+#
 # CLASSES
 # =======
+class Communication:
+	def __init__(self, port_name, impl):
+		self.impl = impl
+
+		try:
+			self.comm = serial.Serial(port=port_name, baudrate=115200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=1)
+		except:
+			log.error("Couldn't find serial port: " + comm)
+
+		if not self.comm.isOpen():
+			log.error("Couldn't open serial port: " + comm)
+
+	def __checkSum(self, blist):
+		chksum = 0
+		for e in blist:
+			chksum += (int(e))
+		return chksum & 0xFF
+
+	def __sendCmd(self, command):
+		comm_map = {
+			CommandType.RESET: HwSimCommand.RESET,
+			CommandType.SET_META: HwSimCommand.SET_META,
+			CommandType.CFG_VECTOR: HwSimCommand.CFG_VECTOR,
+			CommandType.DEF_VECTOR: HwSimCommand.CFG_VECTOR,
+		}
+
+		switcher = {
+			CommandType.RESET: self.__sendCmdReset,
+			CommandType.SET_META: self.__sendCmdMeta,
+			CommandType.CFG_VECTOR: self.__sendVector,
+			CommandType.DEF_VECTOR: self.__sendDefaultVector
+		}
+
+		func = switcher.get(command)
+		func()
+		resp = self.comm.read(100)
+		command_str = str(command).split('.')[1]
+		if resp == b'O':
+			log.info("Request '{0:s}' OK".format(command_str))
+			return True
+		log.info("Request '{0:s}' failed, response={1:s}".format(command_str, str(resp)))
+		return False
+
+	def __sendCmdReset(self):
+		log.info("Resetting simulator")
+		self.comm.write(b'rr')
+
+	def __sendCmdMeta(self):
+		log.info("Sending meta")
+
+		bytelist = []
+		bytelist.append(int(HwSimCommand.SET_META))
+		if self.impl.md.comp_type == 'c':
+			bytelist.append(int(CompType.CONCURRENT))
+		else:
+			bytelist.append(int(CompType.SEQUENTIAL))
+		bytelist.append(self.impl.md.testcases)
+		bytelist.append(self.impl.md.vectors)
+		bytelist.append(self.impl.md.signals)
+		for e in self.impl.md.clock_period.to_bytes(4, byteorder="little"):
+			bytelist.append(e)
+		for e in self.impl.md.interval.to_bytes(4, byteorder="little"):
+			bytelist.append(e)
+		bytelist.append(self.__checkSum(bytelist))
+
+		log.info("Meta frame = " + str(bytelist))
+		self.comm.write(bytearray(bytelist))
+
+	def __sendDefaultVector(self):
+		log.info("Sending default vector")
+
+		bytelist = []
+		bytelist.append(int(HwSimCommand.CFG_VECTOR))
+		bytelist.append(self.impl.dv.testcase)
+		for e in self.impl.dv.interval.to_bytes(4, byteorder="little"):
+			bytelist.append(e)
+		for s in self.impl.sm:
+			bytelist.append(ord(self.impl.dv.content[s]))
+		bytelist.append(self.__checkSum(bytelist))
+
+		log.info("Default vector frame = " + str(bytelist))
+		self.comm.write(bytearray(bytelist))
+
+	def __sendVector(self):
+		log.info("Sending vector")
+
+	def initSim(self):
+		if not self.__sendCmd(CommandType.RESET):
+			return False
+		if not self.__sendCmd(CommandType.SET_META):
+			return False
+		if not self.__sendCmd(CommandType.DEF_VECTOR):
+			return False
+		return True
+
 class Metadata:
+	comp_type = None
 	signals = None
 	testcases = None
+	vectors = None
 	interval = None
-	comp_type = None
+	clock_period = None
 
 	def __init__(self, fpath):
 		md_file = open(fpath)
@@ -50,11 +173,13 @@ class Metadata:
 		self.comp_type = md[0].split(':')[1]
 		self.signals = int(md[1].split(':')[1])
 		self.testcases = int(md[2].split(':')[1])
-		self.interval = md[3]
+		self.vectors = int(md[3].split(':')[1])
+		self.interval = int(intervalToNs(md[4]))
+		self.clock_period = 0
 
 	def __str__(self):
-		return "comp_type: {0:s}; signals: {1:d}; testcases: {2:d}; interval: {3:d}ns"\
-			.format(self.comp_type, self.signals, self.testcases, intervalToNs(self.interval))
+		return "comp_type: {0:s}; signals: {1:d}; testcases: {2:d}; vectors: {3:d}; interval: {4:d}ns; clk_period: {5:d}ns"\
+			.format(self.comp_type, self.signals, self.testcases, self.vectors, self.interval, self.clock_period)
 
 class Vector:
 	testcase = None
@@ -71,6 +196,7 @@ class Vector:
 class Impl:
 	def __init__(self, target_sim_path, comm, comp, verbose):
 		log.setVerbose(verbose)
+		self.communication = Communication(comm, self)
 
 		self.comp = comp
 		self.target_sim_path = target_sim_path
@@ -88,14 +214,6 @@ class Impl:
 		if not os.path.exists(self.map_file_path):
 			log.error("Couldn't find map file: " + self.map_file_path)
 
-		try:
-			self.comm = serial.Serial(port=comm, baudrate=115200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=1)
-		except:
-			log.error("Couldn't find serial port: " + comm)
-
-		if not self.comm.isOpen():
-			log.error("Couldn't open serial port: " + comm)
-
 	def __loadDefaultVector(self, fpath):
 		dv_file = open(fpath)
 		for line in dv_file:
@@ -107,7 +225,7 @@ class Impl:
 		def_vec = Vector()
 		def_vec.testcase = 0xFF
 		def_vec.content = line
-		def_vec.interval = 0xFFFF
+		def_vec.interval = 0xFFFFFFFF
 
 		return def_vec
 
@@ -120,27 +238,22 @@ class Impl:
 		count = len(signals)
 		sig_map = []
 		for s in range(count):
-			sig_map.append(signals[s].split(':')[1])
+			sig_map.append(int(signals[s].split(':')[1])) 
 
 		return sig_map
-
-	def communicate(self):
-		log.info("Resetting simulator")
-		self.comm.write(b'RR')
-		print(self.comm.read(10))
 
 	def run(self):
 		log.info("Loading metadata")
 		self.md = Metadata(self.metadata_file_path)
 		log.info("Metadata = " + str(self.md))
 
-		log.info("Loading default vector")
-		self.dv = self.__loadDefaultVector(self.def_vector_path)
-		log.info("DefVector = " + str(self.dv))
-
 		log.info("Loading signal map")
 		self.sm = self.__loadSignalMap(self.map_file_path)
 		log.info("SignalMap = " + str(self.sm))
+
+		log.info("Loading default vector")
+		self.dv = self.__loadDefaultVector(self.def_vector_path)
+		log.info("DefVector = " + str(self.dv))
 
 		log.info("Building vector file list")
 		vec_list = glob.glob(self.target_sim_path + "/" + self.comp + "*.vec")
@@ -150,7 +263,13 @@ class Impl:
 		vec_list.sort()
 		log.info("VectorFiles = " + str(vec_list))
 
-		self.communicate()
+		log.info("Building vectors list")
+		log.info("NOT IMPLEMENTED")
+
+		if self.communication.initSim():
+			log.info("HW simulator initialization OK")
+		else:
+			return
 
 #
 # RUN

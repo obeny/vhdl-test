@@ -45,7 +45,6 @@ void main(void)
     syncTimerStart(SYNC_TIMER_1000MS);
 
     initRuntimeData();
-    initSignalMap();
 
     while(1)
     {
