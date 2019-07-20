@@ -88,11 +88,25 @@ class Communication:
 		if not self.comm.isOpen():
 			log.error("Couldn't open serial port: " + comm)
 
-	def __checkSum(self, blist):
+	def __checkSum(self, blist, len):
 		chksum = 0
-		for e in blist:
-			chksum += (int(e))
+		for e in range(len):
+			chksum += (int(blist[e]))
 		return chksum & 0xFF
+
+	def __fetchReport(self):
+		log.info("REPORT:")
+
+		byte_cnt = 4 + self.impl.md.testcases
+		report = self.comm.read(byte_cnt)
+		chksum = self.__checkSum(report, byte_cnt - 1)
+		if not report[byte_cnt - 1] == chksum:
+			log.info("Checksum mismatch: {0:d} != {1:d}".format(report[byte_cnt - 1], chksum))
+			return False
+		log.info("failed={0:d}; broken_frames={1:d}".format(report[1], report[2]))
+		for tc in range(self.impl.md.testcases):
+			log.info("TC={0:d}; failures={1:d}".format(tc, report[tc+3]))
+		return True
 
 	def __sendCmd(self, command):
 		comm_map = {
@@ -100,13 +114,17 @@ class Communication:
 			CommandType.SET_META: HwSimCommand.SET_META,
 			CommandType.CFG_VECTOR: HwSimCommand.CFG_VECTOR,
 			CommandType.DEF_VECTOR: HwSimCommand.CFG_VECTOR,
+			CommandType.SEND_REPORT: HwSimCommand.SEND_REPORT,
+			CommandType.EXECUTE: HwSimCommand.EXECUTE
 		}
 
 		switcher = {
 			CommandType.RESET: self.__sendCmdReset,
 			CommandType.SET_META: self.__sendCmdMeta,
 			CommandType.CFG_VECTOR: self.__sendVector,
-			CommandType.DEF_VECTOR: self.__sendDefaultVector
+			CommandType.DEF_VECTOR: self.__sendDefaultVector,
+			CommandType.SEND_REPORT: self.__sendReport,
+			CommandType.EXECUTE: self.__sendExecute
 		}
 
 		func = switcher.get(command)
@@ -115,9 +133,13 @@ class Communication:
 		command_str = str(command).split('.')[1]
 		if resp == b'O':
 			log.info("Request '{0:s}' OK".format(command_str))
-			return True
-		log.info("Request '{0:s}' failed, response={1:s}".format(command_str, str(resp)))
-		return False
+		else:
+			log.info("Request '{0:s}' failed, response={1:s}".format(command_str, str(resp)))
+			return False;
+
+		if command == CommandType.SEND_REPORT:
+			return self.__fetchReport()
+		return True
 
 	def __sendCmdReset(self):
 		log.info("Resetting simulator")
@@ -139,7 +161,7 @@ class Communication:
 			bytelist.append(e)
 		for e in self.impl.md.interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
-		bytelist.append(self.__checkSum(bytelist))
+		bytelist.append(self.__checkSum(bytelist, len(bytelist)-1))
 
 		log.info("Meta frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
@@ -154,7 +176,7 @@ class Communication:
 			bytelist.append(e)
 		for s in self.impl.sm:
 			bytelist.append(ord(self.impl.dv.content[s]))
-		bytelist.append(self.__checkSum(bytelist))
+		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
 
 		log.info("Default vector frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
@@ -169,10 +191,20 @@ class Communication:
 			bytelist.append(e)
 		for s in self.impl.sm:
 			bytelist.append(ord(self.impl.dv.content[s]))
-		bytelist.append(self.__checkSum(bytelist))
+		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
 
 		log.info("Vector frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
+
+	def __sendReport(self):
+		log.info("Requesting current report")
+
+		self.comm.write(b'ss')
+
+	def __sendExecute(self):
+		log.info("Requesting execute vector")
+
+		self.comm.write(b'ee')
 
 	def initSim(self):
 		if not self.__sendCmd(CommandType.RESET):
@@ -189,6 +221,15 @@ class Communication:
 			if not self.__sendCmd(CommandType.CFG_VECTOR):
 				return False
 			self.cur_vec += 1
+		return True
+
+	def executeTests(self):
+		for tc in range(self.impl.md.testcases):
+			log.info("Executing test {0:d}/{1:d}".format(tc + 1, self.impl.md.testcases))
+			if not self.__sendCmd(CommandType.EXECUTE):
+				return False
+			if not self.__sendCmd(CommandType.SEND_REPORT):
+				return False
 		return True
 
 class Metadata:
@@ -330,6 +371,9 @@ class Impl:
 		if not self.communication.sendVectors():
 			log.error("Couldn't send vectors")
 		log.info("HW simulator sending vectors OK")
+
+		self.communication.executeTests()
+		log.info("FINISHED")
 
 		return
 #

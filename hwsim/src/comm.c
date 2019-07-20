@@ -120,16 +120,14 @@ static bool cmdSendReport(void)
     UINT8 byte = usartReadByte(&usart_comm);
     if (E_CMD_SEND_REPORT == byte)
     {
-        comm_buffer[1] = rtdata.testcase_cnt;
-        comm_buffer[2] = rtdata.failed_testcase_cnt;
-        comm_buffer[3] = rtdata.broken_frames;
-        comm_buffer[4] = rtdata.vector_cnt;
+        comm_buffer[1] = rtdata.failed_testcase_cnt;
+        comm_buffer[2] = rtdata.broken_frames;
         for (testcase_num = 0; testcase_num < rtdata.testcase_cnt; ++testcase_num)
-            comm_buffer[5 + testcase_num] = rtdata.failed_vectors_cnt[testcase_num];
-        comm_buffer[testcase_num+5] = checksum8Bit(comm_buffer, testcase_num+5);
+            comm_buffer[3 + testcase_num] = rtdata.failed_vectors_cnt[testcase_num];
+        comm_buffer[rtdata.testcase_cnt+3] = checksum8Bit(comm_buffer, rtdata.testcase_cnt+3);
 
         usartSendByte(&usart_comm, 'O');
-        usartSend(&usart_comm, comm_buffer, testcase_num+6);
+        usartSend(&usart_comm, comm_buffer, testcase_num+4);
         return (true);
     }
     usartSendByte(&usart_comm, 'F');
