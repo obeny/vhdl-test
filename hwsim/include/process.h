@@ -9,6 +9,19 @@
 #define VECTOR_DEFAULTS 0xFF
 #define VECTOR_DEFAULT_INTVAL 0xFFFFFFFFUL
 
+#if GPIO_CNT > 32
+    #error "GPIO_CNT exceeds size of UINT32"
+#endif
+
+enum
+{
+    E_SIGVAL_DC = '-',
+    E_SIGVAL_SET_L = '0',
+    E_SIGVAL_SET_H = '1',
+    E_SIGVAL_EXP_L = 'l',
+    E_SIGVAL_EXP_H = 'h'
+} e_sig_val;
+
 typedef enum
 {
     E_COMP_TYPE_CONCURRENT = 0,

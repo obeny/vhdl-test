@@ -78,7 +78,7 @@ static bool processExpSignal(UINT8 pos, BYTE val)
         case E_SIGVAL_DC:
             break;
         case E_SIGVAL_EXP_L:
-        case E_SIGVAL_SET_H:
+        case E_SIGVAL_EXP_H:
             setPinDir(pos, E_PINDIR_IN);
             return (getPinValue(pos) == (E_SIGVAL_EXP_L == val)?(false):(true));
     }
