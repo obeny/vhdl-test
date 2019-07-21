@@ -16,3 +16,13 @@ hwsim/platforms/stm32_maple_mini/lib_stm32
 .cproject
 .project
 .settings
+
+# hwsim binaries
+hwsim/platforms/*/.dep
+hwsim/platforms/*/obj
+hwsim/platforms/*/*.bin
+hwsim/platforms/*/*.elf
+hwsim/platforms/*/*.hex
+hwsim/platforms/*/*.lss
+hwsim/platforms/*/*.map
+hwsim/platforms/*/*.sym
