@@ -92,18 +92,49 @@ class Communication:
 			chksum += (int(blist[e]))
 		return chksum & 0xFF
 
+	def __getTestcaseVectorCount(self, tc):
+		count = 0
+		for v in self.impl.vs:
+			if v.testcase == tc:
+				count += 1
+		return count
+
+	def __printFailedSignals(self, val):
+		l = []
+		for i in range(32):
+			if (val & 1 << i):
+				l.append(i)
+		if not len(l) == 0:
+			log.note("Expectations not met: " + str(l))
+		else:
+			log.note("Expectations OK")
+
 	def __fetchReport(self):
 		log.info("REPORT:")
 
-		byte_cnt = 4 + self.impl.md.testcases
+		vectors_per_tc = self.__getTestcaseVectorCount(self.cur_testcase)
+		byte_cnt = 3 + 4 * vectors_per_tc
 		report = self.comm.read(byte_cnt)
 		chksum = self.__checkSum(report, byte_cnt - 1)
 		if not report[byte_cnt - 1] == chksum:
 			log.info("Checksum mismatch: {0:d} != {1:d}".format(report[byte_cnt - 1], chksum))
 			return False
-		log.info("failed={0:d}; broken_frames={1:d}".format(report[1], report[2]))
-		for tc in range(self.impl.md.testcases):
-			log.info("TC={0:d}; failures={1:d}".format(tc, report[tc+3]))
+		for v in range(vectors_per_tc):
+			val = 0
+			i = 0
+			log.info("Vector {0:d}/{1:d}:".format(v + 1, vectors_per_tc))
+			for b in report[2:-1]:
+				m = i % 4
+				if m == 0:
+					val += b
+				elif m == 1:
+					val += b << 8
+				elif m == 2:
+					val += b << 16
+				elif m == 3:
+					val += b << 24
+				i += 1
+			self.__printFailedSignals(val)
 		return True
 
 	def __sendCmd(self, command):
@@ -170,6 +201,7 @@ class Communication:
 		bytelist = []
 		bytelist.append(int(HwSimCommand.CFG_VECTOR))
 		bytelist.append(self.impl.dv.vector_num)
+		bytelist.append(self.impl.dv.testcase)
 		for e in self.impl.dv.interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
 		for s in self.impl.sm:
@@ -184,6 +216,7 @@ class Communication:
 
 		bytelist = []
 		bytelist.append(int(HwSimCommand.CFG_VECTOR))
+		bytelist.append(self.impl.vs[self.cur_vec].vector_num)
 		bytelist.append(self.impl.vs[self.cur_vec].testcase)
 		for e in self.impl.vs[self.cur_vec].interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
@@ -200,7 +233,7 @@ class Communication:
 		self.comm.write(b'ss')
 
 	def __sendExecute(self):
-		log.info("Requesting execute vector")
+		log.info("Requesting execute vector {0:d}/{1:d}".format(self.cur_vec_execute, len(self.impl.vs)))
 
 		self.comm.write(b'ee')
 
@@ -222,13 +255,15 @@ class Communication:
 		return True
 
 	def executeTests(self):
+		self.cur_vec_execute = 1
 		for tc in range(self.impl.md.testcases):
 			log.info("Executing test {0:d}/{1:d}".format(tc + 1, self.impl.md.testcases))
 			for vec in self.impl.vs:
 				if vec.testcase == tc:
 					if not self.__sendCmd(CommandType.EXECUTE):
 						return False
-			self.tc = tc
+					self.cur_vec_execute += 1
+			self.cur_testcase = tc
 			if not self.__sendCmd(CommandType.SEND_REPORT):
 				return False
 		return True

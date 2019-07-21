@@ -109,19 +109,36 @@ fail:
 // --------------------------------------------------------------------------
 static bool cmdSendReport(void)
 {
-    UINT8 testcase_num;
-
     UINT8 byte = usartReadByte(&usart_comm);
+
+    UINT8 testcase;
+    UINT8 first_vector;
+    UINT8 vectors;
+    UINT8 index;
+    UINT8 len;
+
     if (E_CMD_SEND_REPORT == byte)
     {
-        comm_buffer[1] = rtdata.failed_testcase_cnt;
-        comm_buffer[2] = rtdata.broken_frames;
-        for (testcase_num = 0; testcase_num < rtdata.testcase_cnt; ++testcase_num)
-            comm_buffer[3 + testcase_num] = rtdata.failed_vectors_cnt[testcase_num];
-        comm_buffer[rtdata.testcase_cnt+3] = checksum8Bit(comm_buffer, rtdata.testcase_cnt+3);
-
+        testcase = rtdata.prev_testcase;
+        for (index = 0; rtdata.vectors[index].testcase != testcase; ++index);
+        first_vector = index;
+        for (; (index < rtdata.vector_cnt) && (rtdata.vectors[index].testcase == testcase); ++index);
+        vectors = index - first_vector;
         usartSendByte(&usart_comm, 'O');
-        usartSend(&usart_comm, comm_buffer, testcase_num+4);
+
+        comm_buffer[1] = vectors;
+        for (index = 0; index < vectors; ++index)
+        {
+            UINT8 buff_pos = 2 + (sizeof(UINT32) * index);
+            comm_buffer[buff_pos] = rtdata.vectors[first_vector + index].failed_signals & 0xFF;
+            comm_buffer[buff_pos+1] = (rtdata.vectors[first_vector + index].failed_signals >> 8) & 0xFF;
+            comm_buffer[buff_pos+2] = (rtdata.vectors[first_vector + index].failed_signals >> 16) & 0xFF;
+            comm_buffer[buff_pos+3] = (rtdata.vectors[first_vector + index].failed_signals >> 24) & 0xFF;
+        }
+        len = 2+(sizeof(UINT32)*vectors);
+        comm_buffer[len] = checksum8Bit(comm_buffer, len);
+
+        usartSend(&usart_comm, comm_buffer, len+1);
         return (true);
     }
     usartSendByte(&usart_comm, 'F');
@@ -131,9 +148,11 @@ static bool cmdSendReport(void)
 // --------------------------------------------------------------------------
 static bool cmdConfigVector(void)
 {
-    UINT8 vector_num;
-    UINT8 payload_size = sizeof(vector_num) + sizeof(rtdata.vectors[0].interval) + rtdata.signals_cnt ;
     UINT32 interval;
+    UINT8 vector_num;
+    UINT8 testcase_num;
+    UINT8 payload_size =
+        sizeof(vector_num) + sizeof(testcase_num) + sizeof(rtdata.vectors[0].interval) + rtdata.signals_cnt;
 
     if (!usartRead(&usart_comm, comm_buffer+1, payload_size+1, COMM_TIMEOUT))
         goto fail;
@@ -141,18 +160,20 @@ static bool cmdConfigVector(void)
     if (checksum8Bit(comm_buffer, payload_size+1) == comm_buffer[payload_size+1])
     {
         vector_num = comm_buffer[1];
-        interval = comm_buffer[2] | comm_buffer[3] << 8 | comm_buffer[4] << 16 | comm_buffer[5] << 24;
+        testcase_num = comm_buffer[2];
+        interval = comm_buffer[3] | comm_buffer[4] << 8 | comm_buffer[5] << 16 | comm_buffer[6] << 24;
 
         if (!((vector_num == VECTOR_DEFAULTS) && (VECTOR_DEFAULT_INTVAL == interval)))
         {
-            if (vector_num >= MAX_VECTORS)
+            if (vector_num > rtdata.vector_cnt)
                 goto fail;
         }
         else
             vector_num = VECTOR_DEFAULTS_POS;
 
-        memcpy(&rtdata.vectors[vector_num].content, &comm_buffer[6], sizeof(rtdata.vectors[0].content));
+        memcpy(&rtdata.vectors[vector_num].content, &comm_buffer[7], rtdata.signals_cnt);
         rtdata.vectors[vector_num].interval = interval;
+        rtdata.vectors[vector_num].testcase = testcase_num;
 
         usartSendByte(&usart_comm, 'O');
         return (true);

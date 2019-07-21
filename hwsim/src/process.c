@@ -21,12 +21,15 @@ void initRuntimeData(void)
 // --------------------------------------------------------------------------
 bool executeTestVector(void)
 {
-    if (0 == rtdata.cur_vector)
+    static UINT8 prev_testcase = 0;
+
+    if (prev_testcase == rtdata.cur_testcase)
         executeDefaultVector();
-    
     executeVector();
 
     ++rtdata.cur_vector;
+    rtdata.prev_testcase = rtdata.cur_testcase;
+    rtdata.cur_testcase = rtdata.vectors[rtdata.cur_vector].testcase;
 
     return (true);
 }
@@ -43,9 +46,11 @@ static void executeVector(void)
         for (UINT8 signal = 0; signal < rtdata.signals_cnt; ++signal)
         {
             if (!processExpSignal(signal, rtdata.vectors[rtdata.cur_vector].content[signal]))
-                rtdata.failed_vectors_cnt[rtdata.cur_testcase] = rtdata.failed_vectors_cnt[rtdata.cur_testcase] + 1;
+                rtdata.vectors[rtdata.cur_vector].failed_signals |= (1 << signal);
         }
     }
+    else
+        return;
 }
 
 // --------------------------------------------------------------------------

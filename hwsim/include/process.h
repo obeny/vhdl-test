@@ -31,7 +31,10 @@ typedef enum
 typedef struct
 {
     UINT32 interval;
+    UINT8 testcase;
     BYTE content[MAX_SIGNALS];
+
+    UINT32 failed_signals;
 } __packed vector_t;
 
 typedef struct
@@ -40,16 +43,15 @@ typedef struct
     UINT8 signals_cnt;
     UINT8 vector_cnt;
     UINT8 testcase_cnt;
-    UINT8 broken_frames;
-    UINT8 failed_testcase_cnt;
-    UINT8 failed_vectors_cnt[MAX_TESTCASES];
-    BYTE tc_name[MAX_TESTCASES][TC_NAME_LEN];
-    vector_t vectors[MAX_VECTORS];
     UINT32 clock_period;
     UINT32 interval;
 
+    UINT8 broken_frames;
     UINT8 cur_vector;
     UINT8 cur_testcase;
+    UINT8 prev_testcase;
+
+    vector_t vectors[MAX_VECTORS];
 } st_rtdata_t;
 
 void initRuntimeData(void);
