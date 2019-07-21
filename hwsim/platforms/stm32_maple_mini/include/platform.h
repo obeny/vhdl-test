@@ -13,7 +13,7 @@
 
 #define TC_NAME_LEN 32
 #define MAX_SIGNALS 64
-#define MAX_VECTORS (UINT8_MAX-1)
+#define MAX_VECTORS (UINT8_MAX)
 #define MAX_TESTCASES 24
 
 typedef GPIO_TypeDef* port_t;

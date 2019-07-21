@@ -125,13 +125,13 @@ static bool cmdConfigVector(void)
 
         if (!((vector_num == VECTOR_DEFAULTS) && (VECTOR_DEFAULT_INTVAL == interval)))
         {
-            if (vector_num > MAX_VECTORS)
+            if (vector_num >= MAX_VECTORS)
                 goto fail;
         }
         else
             vector_num = VECTOR_DEFAULTS_POS;
 
-        memcpy(&rtdata.vectors[vector_num].content, &comm_buffer[5], sizeof(rtdata.vectors[0].content));
+        memcpy(&rtdata.vectors[vector_num].content, &comm_buffer[6], sizeof(rtdata.vectors[0].content));
         rtdata.vectors[vector_num].interval = interval;
 
         usartSendByte(&usart_comm, 'O');
