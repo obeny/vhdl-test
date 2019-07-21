@@ -123,7 +123,8 @@ class Communication:
 			val = 0
 			i = 0
 			log.info("Vector {0:d}/{1:d}:".format(v + 1, vectors_per_tc))
-			for b in report[2:-1]:
+			vec_rep_start = 2 + (v * 4)
+			for b in report[vec_rep_start:vec_rep_start+4]:
 				m = i % 4
 				if m == 0:
 					val += b
