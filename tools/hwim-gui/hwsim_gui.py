@@ -54,16 +54,14 @@ def intervalStrToNs(str):
 # =====
 class CommandType(IntEnum):
 	RESET = 0
-	SET_TC_NAME = 1
-	SEND_REPORT = 2
-	SET_META = 3
-	CFG_VECTOR = 4
-	DEF_VECTOR = 5
-	EXECUTE = 6
+	SEND_REPORT = 1
+	SET_META = 2
+	CFG_VECTOR = 3
+	DEF_VECTOR = 4
+	EXECUTE = 5
 
 class HwSimCommand(IntEnum):
 	RESET = ord('r')
-	SET_TC_NAME = ord('n')
 	SEND_REPORT = ord('s')
 	SET_META = ord('i')
 	CFG_VECTOR = ord('v')

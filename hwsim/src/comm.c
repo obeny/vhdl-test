@@ -15,7 +15,6 @@ extern st_rtdata_t rtdata;
 
 // static functions
 static bool cmdReset(void);
-static bool cmdTestcaseName(void);
 static bool cmdSendReport(void);
 static bool cmdSetMeta(void);
 static bool cmdConfigVector(void);
@@ -34,8 +33,6 @@ bool handleCommand(void)
     {
         case E_CMD_RESET:
             return cmdReset();
-        case E_CMD_SET_TC_NAME:
-            return cmdTestcaseName();
         case E_CMD_CFG_VECTOR:
             return cmdConfigVector();
         case E_CMD_EXECUTE:
@@ -62,29 +59,6 @@ static bool cmdReset(void)
         usartSendByte(&usart_comm, 'O');
         return (true);
     }
-    usartSendByte(&usart_comm, 'F');
-    return (false);
-}
-
-// --------------------------------------------------------------------------
-static bool cmdTestcaseName(void)
-{
-    UINT8 len = usartReadByte(&usart_comm);
-    UINT8 tc = usartReadByte(&usart_comm);
-
-    if (!usartRead(&usart_comm, comm_buffer+3, len, COMM_TIMEOUT))
-        goto fail;
-
-    comm_buffer[1] = len;
-    comm_buffer[2] = tc;
-
-    if (checksum8Bit(comm_buffer, len+1) == comm_buffer[len+3])
-    {
-        strncpy((char*)&rtdata.tc_name[tc][0], (char*)comm_buffer+3, len);
-        usartSendByte(&usart_comm, 'O');
-        return (true);
-    }
-fail:
     usartSendByte(&usart_comm, 'F');
     return (false);
 }
