@@ -169,7 +169,7 @@ class Communication:
 
 		bytelist = []
 		bytelist.append(int(HwSimCommand.CFG_VECTOR))
-		bytelist.append(self.impl.dv.testcase)
+		bytelist.append(self.impl.dv.vector_num)
 		for e in self.impl.dv.interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
 		for s in self.impl.sm:
@@ -188,7 +188,7 @@ class Communication:
 		for e in self.impl.vs[self.cur_vec].interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
 		for s in self.impl.sm:
-			bytelist.append(ord(self.impl.dv.content[s]))
+			bytelist.append(ord(self.impl.vs[self.cur_vec].content[s]))
 		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
 
 		log.info("Vector frame = " + str(bytelist))
@@ -224,8 +224,11 @@ class Communication:
 	def executeTests(self):
 		for tc in range(self.impl.md.testcases):
 			log.info("Executing test {0:d}/{1:d}".format(tc + 1, self.impl.md.testcases))
-			if not self.__sendCmd(CommandType.EXECUTE):
-				return False
+			for vec in self.impl.vs:
+				if vec.testcase == tc:
+					if not self.__sendCmd(CommandType.EXECUTE):
+						return False
+			self.tc = tc
 			if not self.__sendCmd(CommandType.SEND_REPORT):
 				return False
 		return True
@@ -254,13 +257,14 @@ class Metadata:
 			.format(self.comp_type, self.signals, self.testcases, self.vectors, self.interval, self.clock_period)
 
 class Vector:
+	vector_num = None
 	testcase = None
 	content = None
 	interval = None
 
 	def __str__(self):
-		return "testcase: {0:d}; content: {1:s}; interval: {2:d}ns"\
-			.format(self.testcase, self.content, self.interval)
+		return "vector_num: {0:d}; testcase: {1:d}; content: {2:s}; interval: {3:d}ns"\
+			.format(self.vector_num + 1, self.testcase + 1, self.content, self.interval)
 
 #
 # IMPLEMENTATION
@@ -296,6 +300,7 @@ class Impl:
 		line = line.replace('#', '').replace(' ', '')
 		def_vec = Vector()
 		def_vec.testcase = 0xFF
+		def_vec.vector_num = 0xFF
 		def_vec.content = line
 		def_vec.interval = 0xFFFFFFFF
 
@@ -316,6 +321,7 @@ class Impl:
 
 	def __loadVectors(self, files):
 		vs = []
+		vector_no = 0
 
 		for f in files:
 			tc = int(f[len(f)-6:len(f)-4])
@@ -326,10 +332,12 @@ class Impl:
 				l = l.lstrip().replace("\n", "")
 				interval = intervalStrToNs(l[0:4])
 				v = Vector()
-				v.testcase = tc
+				v.vector_num = vector_no
+				v.testcase = tc - 1
 				v.content = l[5:].replace(" ", "")
 				v.interval = interval
 				vs.append(v)
+				vector_no += 1
 			vf.close()
 		return vs
 
