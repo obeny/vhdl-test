@@ -1,6 +1,7 @@
 #include "config.h"
 #include "chksum.h"
 #include "usart.h"
+#include "util.h"
 
 #include "comm.h"
 #include "gpio.h"
@@ -15,6 +16,7 @@ extern st_rtdata_t rtdata;
 
 // static functions
 static bool cmdReset(void);
+static bool cmdCpuReset(void);
 static bool cmdSendReport(void);
 static bool cmdSetMeta(void);
 static bool cmdConfigVector(void);
@@ -33,6 +35,8 @@ bool handleCommand(void)
     {
         case E_CMD_RESET:
             return cmdReset();
+        case E_CMD_CPU_RESET:
+            return cmdCpuReset();
         case E_CMD_CFG_VECTOR:
             return cmdConfigVector();
         case E_CMD_EXECUTE:
@@ -58,6 +62,22 @@ static bool cmdReset(void)
         initRuntimeData();
         usartSendByte(&usart_comm, 'O');
         return (true);
+    }
+    usartSendByte(&usart_comm, 'F');
+    return (false);
+}
+
+// --------------------------------------------------------------------------
+static bool cmdCpuReset(void)
+{
+    UINT8 byte = usartReadByte(&usart_comm);
+    if (E_CMD_CPU_RESET == byte)
+    {
+        usartSendByte(&usart_comm, 'O');
+        delayMs(100);
+        softReset();
+        // should not enter this
+        return (false);
     }
     usartSendByte(&usart_comm, 'F');
     return (false);
