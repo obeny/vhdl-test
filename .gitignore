@@ -11,3 +11,8 @@ __pycache__
 
 # hwsim externals
 hwsim/platforms/stm32_maple_mini/lib_stm32
+
+# eclipse
+.cproject
+.project
+.settings
