@@ -37,6 +37,16 @@ typedef struct
     UINT32 failed_signals;
 } __packed vector_t;
 
+typedef union
+{
+    struct
+    {
+        UINT8 remember_state : 1;
+        UINT8 reserved       : 7;
+    } flags;
+    UINT8 u8;
+} flags_t;
+
 typedef struct
 {
     e_comp_type_t comp_type;
@@ -52,6 +62,7 @@ typedef struct
     UINT8 prev_testcase;
 
     vector_t vectors[MAX_VECTORS];
+    flags_t flags[MAX_TESTCASES];
 } st_rtdata_t;
 
 void initRuntimeData(void);

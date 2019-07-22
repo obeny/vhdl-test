@@ -19,6 +19,7 @@ static bool cmdReset(void);
 static bool cmdCpuReset(void);
 static bool cmdSendReport(void);
 static bool cmdSetMeta(void);
+static bool cmdSetFlags(void);
 static bool cmdConfigVector(void);
 
 static bool cmdExecute(void);
@@ -45,6 +46,8 @@ bool handleCommand(void)
             return cmdSendReport();
         case E_CMD_SET_META:
             return cmdSetMeta();
+        case E_CMD_SET_FLAGS:
+            return cmdSetFlags();
     }
     usartFlush(&usart_comm);
     usartSendByte(&usart_comm, '?');
@@ -97,6 +100,29 @@ static bool cmdSetMeta(void)
         rtdata.signals_cnt = comm_buffer[4];
         rtdata.clock_period = comm_buffer[5] | comm_buffer[6] << 8 | comm_buffer[7] << 16 | comm_buffer[8] << 24;
         rtdata.interval = comm_buffer[9] | comm_buffer[10] << 8 | comm_buffer[11] << 16 | comm_buffer[12] << 24;
+
+        usartSendByte(&usart_comm, 'O');
+        return (true);
+    }
+fail:
+    usartSendByte(&usart_comm, 'F');
+    return (false);
+}
+
+// --------------------------------------------------------------------------
+static bool cmdSetFlags(void)
+{
+    UINT8 testcase;
+    flags_t flags;
+
+    if (!usartRead(&usart_comm, comm_buffer+1, 3, COMM_TIMEOUT))
+        goto fail;
+
+    if (checksum8Bit(comm_buffer, 3) == comm_buffer[3])
+    {
+        testcase = comm_buffer[1];
+        flags.u8 = comm_buffer[2];
+        rtdata.flags[testcase] = flags;
 
         usartSendByte(&usart_comm, 'O');
         return (true);

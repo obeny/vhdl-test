@@ -24,7 +24,10 @@ bool executeTestVector(void)
     static UINT8 prev_testcase = 0;
 
     if (prev_testcase == rtdata.cur_testcase)
-        executeDefaultVector();
+    {
+        if (!rtdata.flags[rtdata.cur_testcase].flags.remember_state)
+            executeDefaultVector();
+    }
     executeVector();
 
     ++rtdata.cur_vector;

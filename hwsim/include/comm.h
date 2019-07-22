@@ -13,6 +13,7 @@ enum command_e
     E_CMD_CPU_RESET = 'R',
     E_CMD_SEND_REPORT = 's',
     E_CMD_SET_META = 'i',
+    E_CMD_SET_FLAGS = 'f',
     E_CMD_CFG_VECTOR = 'v',
     E_CMD_EXECUTE = 'e'
 };
