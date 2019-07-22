@@ -56,14 +56,16 @@ class CommandType(IntEnum):
 	RESET = 0
 	SEND_REPORT = 1
 	SET_META = 2
-	CFG_VECTOR = 3
-	DEF_VECTOR = 4
-	EXECUTE = 5
+	SET_FLAGS = 3
+	CFG_VECTOR = 4
+	DEF_VECTOR = 5
+	EXECUTE = 6
 
 class HwSimCommand(IntEnum):
 	RESET = ord('r')
 	SEND_REPORT = ord('s')
 	SET_META = ord('i')
+	SET_FLAGS = ord('f')
 	CFG_VECTOR = ord('v')
 	EXECUTE = ord('e')
 
@@ -112,6 +114,7 @@ class Communication:
 	def __fetchReport(self):
 		log.info("REPORT:")
 
+		failed_vectors = 0
 		vectors_per_tc = self.__getTestcaseVectorCount(self.cur_testcase)
 		byte_cnt = 3 + 4 * vectors_per_tc
 		report = self.comm.read(byte_cnt)
@@ -135,13 +138,18 @@ class Communication:
 				elif m == 3:
 					val += b << 24
 				i += 1
+			if val:
+				failed_vectors += 1
 			self.__printFailedSignals(val)
+		if failed_vectors:
+			self.impl.failed_testcases += 1
 		return True
 
 	def __sendCmd(self, command):
 		comm_map = {
 			CommandType.RESET: HwSimCommand.RESET,
 			CommandType.SET_META: HwSimCommand.SET_META,
+			CommandType.SET_FLAGS: HwSimCommand.SET_FLAGS,
 			CommandType.CFG_VECTOR: HwSimCommand.CFG_VECTOR,
 			CommandType.DEF_VECTOR: HwSimCommand.CFG_VECTOR,
 			CommandType.SEND_REPORT: HwSimCommand.SEND_REPORT,
@@ -151,6 +159,7 @@ class Communication:
 		switcher = {
 			CommandType.RESET: self.__sendCmdReset,
 			CommandType.SET_META: self.__sendCmdMeta,
+			CommandType.SET_FLAGS: self.__sendCmdFlags,
 			CommandType.CFG_VECTOR: self.__sendVector,
 			CommandType.DEF_VECTOR: self.__sendDefaultVector,
 			CommandType.SEND_REPORT: self.__sendReport,
@@ -191,9 +200,21 @@ class Communication:
 			bytelist.append(e)
 		for e in self.impl.md.interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
-		bytelist.append(self.__checkSum(bytelist, len(bytelist)-1))
+		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
 
 		log.info("Meta frame = " + str(bytelist))
+		self.comm.write(bytearray(bytelist))
+
+	def __sendCmdFlags(self):
+		log.info("Sending flags")
+
+		bytelist = []
+		bytelist.append(int(HwSimCommand.SET_FLAGS))
+		bytelist.append(self.cur_testcase)
+		bytelist.append(self.impl.flags[self.cur_testcase])
+		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
+
+		log.info("Flags frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
 
 	def __sendDefaultVector(self):
@@ -255,6 +276,14 @@ class Communication:
 			self.cur_vec += 1
 		return True
 
+	def sendFlags(self):
+		self.cur_testcase = 0
+		for n in range(self.impl.md.testcases):
+			if not self.__sendCmd(CommandType.SET_FLAGS):
+				return False
+			self.cur_testcase += 1
+		return True
+
 	def executeTests(self):
 		self.cur_vec_execute = 1
 		for tc in range(self.impl.md.testcases):
@@ -308,6 +337,7 @@ class Vector:
 class Impl:
 	def __init__(self, target_sim_path, comm, comp, verbose):
 		log.setVerbose(verbose)
+		self.failed_testcases = 0
 		self.communication = Communication(comm, self)
 
 		self.comp = comp
@@ -357,12 +387,16 @@ class Impl:
 
 	def __loadVectors(self, files):
 		vs = []
+		flags = []
 		vector_no = 0
 
 		for f in files:
 			tc = int(f[len(f)-6:len(f)-4])
 			vf = open(f)
 			for l in vf:
+				if l.startswith("#flags"):
+					flag_r = int(l.split(" ")[1].split(":")[1][0])
+					continue
 				if l.startswith("#"):
 					continue
 				l = l.lstrip().replace("\n", "")
@@ -373,9 +407,12 @@ class Impl:
 				v.content = l[5:].replace(" ", "")
 				v.interval = interval
 				vs.append(v)
+
+
+				flags.append(flag_r << 0)
 				vector_no += 1
 			vf.close()
-		return vs
+		return vs, flags
 
 	def run(self):
 		log.info("Loading metadata")
@@ -399,7 +436,7 @@ class Impl:
 		log.info("VectorFiles = " + str(vec_list))
 
 		log.info("Building vectors list")
-		self.vs = self.__loadVectors(vec_list)
+		self.vs, self.flags = self.__loadVectors(vec_list)
 		log.info("Vectors:")
 		for v in self.vs:
 			log.info(str(v))
@@ -414,8 +451,12 @@ class Impl:
 			log.error("Couldn't send vectors")
 		log.info("HW simulator sending vectors OK")
 
+		if not self.communication.sendFlags():
+			log.error("Couldn't send flags")
+		log.info("HW simulator sending flags OK")
+
 		self.communication.executeTests()
-		log.info("FINISHED")
+		log.info("FINISHED (failed {0:d} of {1:d} testcases)".format(self.failed_testcases, self.md.testcases))
 
 		return
 #
