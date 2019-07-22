@@ -18,8 +18,12 @@ enum
     E_SIGVAL_DC = '-',
     E_SIGVAL_SET_L = '0',
     E_SIGVAL_SET_H = '1',
+    E_SIGVAL_SET_Z = 'Z',
+
     E_SIGVAL_EXP_L = 'l',
-    E_SIGVAL_EXP_H = 'h'
+    E_SIGVAL_EXP_H = 'h',
+    E_SIGVAL_EXP_LZ = 'L',
+    E_SIGVAL_EXP_HZ = 'H'
 } e_sig_val;
 
 typedef enum
