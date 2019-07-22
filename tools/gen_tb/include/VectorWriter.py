@@ -8,6 +8,7 @@ import Utils as UT
 class VectorWriter:
 	def __init__(self, meta, out, scripts):
 		self.component = meta.component
+		self.testcases = meta.testcases
 		self.signals = meta.signals
 		self.scripts_dir = scripts
 		self.tc_dir = meta.getTestbenchDir()
@@ -23,6 +24,7 @@ class VectorWriter:
 		log.info("generateVector: " + file_name)
 		self.file = open(file_name, 'w')
 		self.file.write("#{0:s}\n".format(test.name))
+		self.file.write("#flags state:{0:d}\n".format(self.testcases.list[test_num-1].rememberState))
 		self.file.write(self.header)
 
 		for command in test.content:
