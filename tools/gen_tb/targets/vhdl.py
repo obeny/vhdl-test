@@ -1,3 +1,4 @@
+import glob
 import os
 
 import log
@@ -223,7 +224,6 @@ class TestWriter:
 		self.simWriter.insertHeader()
 		self.simWriter.insertSignals()
 
-		self.__generateMetaInfoFile()
 		self.__prepareLibraries()
 		self.__prepareComponent()
 		self.__prepareSignals()
@@ -237,6 +237,7 @@ class TestWriter:
 
 		self.file.close()
 		self.vectorWriter.generateDefaultVector()
+		self.__generateMetaInfoFile()
 
 	def getTestbenchDuration(self):
 		return "{0:d} ns".format(self.testbench_duration)
@@ -261,11 +262,32 @@ class TestWriter:
 	def __getMetaInfoFileName(self):
 		return "{0:s}/{1:s}.mi".format(self.meta.getTestbenchDir(), self.component.name)
 
+	def __getVectorTotalCount(self):
+		cnt = 0
+		gl = glob.glob("{0:s}/*.vec".format(self.meta.getTestbenchDir()))
+		for v in gl:
+			if not v.find("df.vec") == -1:
+				gl.remove(v)
+		gl.sort()
+		for f in gl:
+			vf = open(f)
+			for l in vf.readlines():
+				if not (l.startswith("#") or l == "\n"):
+					cnt += 1
+
+			vf.close()
+		return cnt
+
 	def __generateMetaInfoFile(self):
 		mi_file_name = self.__getMetaInfoFileName()
 		file = open(mi_file_name, 'w')
-		file.write("s:{0:d} t:{1:d} {2:s}"\
-			.format(self.meta.signals.count, self.meta.testcases.getTestcaseCount(), self.meta.component.interval))
+		if self.meta.component.type == 'concurrent':
+			comp_type = 'c'
+		else:
+			comp_type = 's'
+		file.write("t:{0:s};s:{1:d};t:{2:d};v:{3:d};{4:s}"\
+			.format(comp_type, self.meta.signals.count, self.meta.testcases.getTestcaseCount(),\
+				self.__getVectorTotalCount(), self.meta.component.interval))
 		file.close()
 
 	def __prepareLibraries(self):
