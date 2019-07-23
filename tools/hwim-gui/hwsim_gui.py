@@ -37,6 +37,17 @@ def intervalToNs(str):
 	}
 	return switcher.get(mul) * value
 
+def clockToNs(str):
+	l = str.split(' ')
+	value = int(l[0])
+	div = l[1]
+
+	switcher = {
+		"k": 1000,
+		"m": 1000 * 1000,
+	}
+	return (((1000 * 1000 * 1000) / switcher.get(div)) * 100) / value
+
 def intervalStrToNs(str):
 	mul = str[0]
 	value = int(str[1:4])
@@ -315,11 +326,11 @@ class Metadata:
 		self.testcases = int(md[2].split(':')[1])
 		self.vectors = int(md[3].split(':')[1])
 		self.interval = int(intervalToNs(md[4]))
-		self.clock_period = 0
+		self.clock_period = int(clockToNs(md[5]))
 
 	def __str__(self):
-		return "comp_type: {0:s}; signals: {1:d}; testcases: {2:d}; vectors: {3:d}; interval: {4:d}ns; clk_period: {5:d}ns"\
-			.format(self.comp_type, self.signals, self.testcases, self.vectors, self.interval, self.clock_period)
+		return "comp_type: {0:s}; signals: {1:d}; testcases: {2:d}; vectors: {3:d}; interval: {4:d}ns; clk_period: {5:f}ns"\
+			.format(self.comp_type, self.signals, self.testcases, self.vectors, self.interval, self.clock_period / 100.0)
 
 class Vector:
 	vector_num = None
@@ -407,7 +418,6 @@ class Impl:
 				v.content = l[5:].replace(" ", "")
 				v.interval = interval
 				vs.append(v)
-
 
 				flags.append(flag_r << 0)
 				vector_no += 1
