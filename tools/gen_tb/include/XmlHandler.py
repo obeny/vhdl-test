@@ -165,7 +165,11 @@ class XmlHandler:
 		component.name = xml_component.attrib['name']
 		component.type = xml_component.attrib['type']
 		component.interval = xml_component.attrib['interval']
-		component.clk_period = self.meta.signals.getSignal(self.meta.signals.getClock()).freq
+		clk = self.meta.signals.getSignal(self.meta.signals.getClock())
+		if clk:
+			component.clk_period = clk.freq
+		else:
+			component.clk_period = "0 ns"
 
 		log.info("buildComponent: built component " + str(component))
 		return component
