@@ -24,4 +24,6 @@ void setPinDir(UINT8 gpio, e_pindir_t dir);
 void setPinValue(UINT8 gpio, BOOL value);
 bool getPinValue(UINT8 gpio);
 
+void tickClock(UINT8 gpio);
+
 #endif // GPIO_H

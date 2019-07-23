@@ -1,6 +1,9 @@
 #include "stm32f10x.h"
 
+#include "process.h"
 #include "gpio.h"
+
+extern st_rtdata_t rtdata;
 
 pin_data_t pin_data[GPIO_CNT] = 
 {
@@ -75,4 +78,21 @@ void setPinValue(UINT8 gpio, BOOL value)
 bool getPinValue(UINT8 gpio)
 {
     return (GPIO_ReadInputDataBit(pin_data[gpio].port, pin_data[gpio].pin));
+}
+
+// --------------------------------------------------------------------------
+void tickClock(UINT8 gpio)
+{
+    if (E_CLK_DEF_H == rtdata.clk_def_val)
+    {
+        setPinValue(gpio, false);
+        NOP;
+        setPinValue(gpio, true);
+    }
+    else
+    {
+        setPinValue(gpio, true);
+        NOP;
+        setPinValue(gpio, false);
+    }
 }

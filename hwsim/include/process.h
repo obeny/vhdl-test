@@ -33,6 +33,12 @@ typedef enum
     E_COMP_TYPE_SEQUENTIAL = 1
 } e_comp_type_t;
 
+typedef enum
+{
+    E_CLK_DEF_L = 0,
+    E_CLK_DEF_H = 1
+} e_clk_def_t;
+
 typedef struct
 {
     UINT32 interval;
@@ -47,7 +53,9 @@ typedef union
     struct
     {
         UINT8 remember_state : 1;
-        UINT8 reserved       : 7;
+        UINT8 clock_disable  : 1;
+        UINT8 clock_reset    : 1;
+        UINT8 reserved       : 5;
     } flags;
     UINT8 u8;
 } flags_t;
@@ -55,11 +63,16 @@ typedef union
 typedef struct
 {
     e_comp_type_t comp_type;
+    e_clk_def_t clk_def_val;
+
     UINT8 signals_cnt;
     UINT8 vector_cnt;
     UINT8 testcase_cnt;
+    UINT8 clk_pin_pos;
     UINT32 clock_period;
     UINT32 interval;
+    UINT32 cur_ns;
+    UINT32 cur_clk_ticks;
 
     UINT8 broken_frames;
     UINT8 cur_vector;

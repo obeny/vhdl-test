@@ -2,6 +2,7 @@
 #include "process.h"
 
 #include <string.h>
+#include <stdfix.h>
 
 st_rtdata_t rtdata;
 
