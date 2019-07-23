@@ -32,10 +32,11 @@ class Component:
 	name = ""
 	type = ""
 	interval = ""
+	clk_period = ""
 
 	def __str__(self):
-		return "name={0:s}, type={1:s}, interval={2:s}"\
-			.format(self.name, self.type, self.interval)
+		return "name={0:s}, type={1:s}, interval={2:s}, period={3:s}"\
+			.format(self.name, self.type, self.interval, self.clk_period)
 
 # SIGNALS information
 class SignalContainer:

@@ -285,9 +285,9 @@ class TestWriter:
 			comp_type = 'c'
 		else:
 			comp_type = 's'
-		file.write("t:{0:s};s:{1:d};t:{2:d};v:{3:d};{4:s}"\
+		file.write("t:{0:s};s:{1:d};t:{2:d};v:{3:d};{4:s};{5:s}"\
 			.format(comp_type, self.meta.signals.count, self.meta.testcases.getTestcaseCount(),\
-				self.__getVectorTotalCount(), self.meta.component.interval))
+				self.__getVectorTotalCount(), self.meta.component.interval, self.meta.component.clk_period))
 		file.close()
 
 	def __prepareLibraries(self):
