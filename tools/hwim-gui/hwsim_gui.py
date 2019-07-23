@@ -46,6 +46,10 @@ def clockToNs(str):
 		"k": 1000,
 		"m": 1000 * 1000,
 	}
+
+	if value == 0:
+		return 100
+
 	return (((1000 * 1000 * 1000) / switcher.get(div)) * 100) / value
 
 def intervalStrToNs(str):
