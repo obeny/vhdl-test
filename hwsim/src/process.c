@@ -76,6 +76,7 @@ static void processSetSignal(UINT8 pos, BYTE val)
             setPinValue(pos, (E_SIGVAL_SET_L == val)?(false):(true));
             break;
         case E_SIGVAL_SET_Z:
+        case E_SIGVAL_SET_X:
             setPinDir(pos, E_PINDIR_IN);
             break;
     }

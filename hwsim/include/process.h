@@ -19,6 +19,7 @@ enum
     E_SIGVAL_SET_L = '0',
     E_SIGVAL_SET_H = '1',
     E_SIGVAL_SET_Z = 'Z',
+    E_SIGVAL_SET_X = 'X',
 
     E_SIGVAL_EXP_L = 'l',
     E_SIGVAL_EXP_H = 'h',
