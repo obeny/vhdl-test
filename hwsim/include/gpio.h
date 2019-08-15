@@ -10,8 +10,6 @@ typedef struct
     pin_t pin;
 } pin_data_t;
 
-extern pin_data_t pin_data[GPIO_CNT];
-
 typedef enum
 {
     E_PINDIR_IN = 0,

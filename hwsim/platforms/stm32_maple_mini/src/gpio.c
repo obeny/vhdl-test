@@ -5,7 +5,7 @@
 
 extern st_rtdata_t rtdata;
 
-pin_data_t pin_data[GPIO_CNT] = 
+static pin_data_t pin_data[GPIO_CNT] =
 {
     // pins used: a15,b3,b4 = jtag, a9,a10 = uart
     // GPIOA
