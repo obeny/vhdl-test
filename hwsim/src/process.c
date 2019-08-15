@@ -42,19 +42,29 @@ bool executeTestVector(void)
 // --------------------------------------------------------------------------
 static void executeVector(void)
 {
+    UINT32 clk_ticks;
+    UINT32 tick;
+
     for (UINT8 signal = 0; signal < rtdata.signals_cnt; ++signal)
         processSetSignal(signal, rtdata.vectors[rtdata.cur_vector].content[signal]);
 
-    if (E_COMP_TYPE_CONCURRENT == rtdata.comp_type)
+    if (E_COMP_TYPE_SEQUENTIAL == rtdata.comp_type)
     {
-        for (UINT8 signal = 0; signal < rtdata.signals_cnt; ++signal)
+        rtdata.cur_ns += rtdata.vectors[rtdata.cur_vector].interval;
+        if (!rtdata.flags[rtdata.cur_testcase].flags.clock_disable)
         {
-            if (!processExpSignal(signal, rtdata.vectors[rtdata.cur_vector].content[signal]))
-                rtdata.vectors[rtdata.cur_vector].failed_signals |= (1 << signal);
+            clk_ticks = (UINT32)(rtdata.cur_ns / 100.0K / rtdata.clock_period);
+            clk_ticks = rtdata.cur_clk_ticks - clk_ticks;
+            for (tick = 0; tick < clk_ticks; ++tick)
+                tickClock(rtdata.clk_pin_pos);
         }
     }
-    else
-        return;
+
+    for (UINT8 signal = 0; signal < rtdata.signals_cnt; ++signal)
+    {
+        if (!processExpSignal(signal, rtdata.vectors[rtdata.cur_vector].content[signal]))
+            rtdata.vectors[rtdata.cur_vector].failed_signals |= (1 << signal);
+    }
 }
 
 // --------------------------------------------------------------------------
