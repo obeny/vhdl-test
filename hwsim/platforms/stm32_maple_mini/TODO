@@ -7,7 +7,7 @@ test order:
 * mux
 
 - concurrent inout
-hiz_out
+* hiz_out
 * bidir
 
 - sequential

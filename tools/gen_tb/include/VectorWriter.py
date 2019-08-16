@@ -73,14 +73,14 @@ class VectorWriter:
 				file.write(" ")
 				value = ""
 				if type(signal) == CLS.SignalVector:
-					if signal.role == 'out_vec':
+					if signal.role == 'out_vec' or signal.role == 'inout_vec':
 						for pos in range(signal.size):
 							value += '-'
 					else:
 						value = signal.value
 					file.write("{0:s}".format(value))
 				elif type(signal) == CLS.Signal:
-					if signal.role == 'out':
+					if signal.role == 'out' or signal.role == 'inout':
 						value = '-'
 					else:
 						value = signal.value
