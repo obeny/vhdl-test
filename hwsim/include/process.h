@@ -4,7 +4,6 @@
 #include "global.h"
 #include "platform.h"
 
-#define SIGNAL_NO_MAPPING 0xFF
 #define VECTOR_DEFAULTS_POS (MAX_VECTORS - 1)
 #define VECTOR_DEFAULTS 0xFF
 #define VECTOR_DEFAULT_INTVAL 0xFFFFFFFFUL

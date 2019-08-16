@@ -1,0 +1,15 @@
+test order:
+===========
+
+- concurrent
+* and_gate
+* xor_gate
+* mux
+
+- concurrent inout
+hiz_out
+bidir_vec
+
+- sequential
+ff_d
+counter_gen

@@ -124,6 +124,9 @@ static bool cmdSetFlags(void)
         flags.u8 = comm_buffer[2];
         rtdata.flags[testcase] = flags;
 
+        if (0 != rtdata.flags[testcase].flags.reserved)
+            goto fail;
+
         usartSendByte(&usart_comm, 'O');
         return (true);
     }
@@ -161,7 +164,7 @@ static bool cmdSendReport(void)
             comm_buffer[buff_pos+2] = (rtdata.vectors[first_vector + index].failed_signals >> 16) & 0xFF;
             comm_buffer[buff_pos+3] = (rtdata.vectors[first_vector + index].failed_signals >> 24) & 0xFF;
         }
-        len = 2+(sizeof(UINT32)*vectors);
+        len = 2 + (sizeof(UINT32)*vectors);
         comm_buffer[len] = checksum8Bit(comm_buffer, len);
 
         usartSend(&usart_comm, comm_buffer, len+1);

@@ -55,6 +55,7 @@ static void executeVector(void)
         {
             clk_ticks = (UINT32)(rtdata.cur_ns / 100.0K / rtdata.clock_period);
             clk_ticks = rtdata.cur_clk_ticks - clk_ticks;
+            rtdata.cur_clk_ticks += clk_ticks;
             for (tick = 0; tick < clk_ticks; ++tick)
                 tickClock(rtdata.clk_pin_pos);
         }
