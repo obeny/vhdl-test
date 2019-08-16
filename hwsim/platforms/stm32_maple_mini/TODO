@@ -8,7 +8,7 @@ test order:
 
 - concurrent inout
 hiz_out
-bidir_vec
+* bidir
 
 - sequential
 ff_d
