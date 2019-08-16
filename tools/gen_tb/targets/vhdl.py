@@ -264,7 +264,7 @@ class TestWriter:
 
 	def __getVectorTotalCount(self):
 		cnt = 0
-		gl = glob.glob("{0:s}/*.vec".format(self.meta.getTestbenchDir()))
+		gl = glob.glob("{0:s}/{1:s}_*.vec".format(self.meta.getTestbenchDir(), self.component.name))
 		for v in gl:
 			if not v.find("df.vec") == -1:
 				gl.remove(v)

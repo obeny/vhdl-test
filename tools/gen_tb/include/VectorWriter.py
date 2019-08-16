@@ -71,9 +71,9 @@ class VectorWriter:
 		for signal in self.signals.list:
 			if signal.role != 'clock':
 				file.write(" ")
-
-				if type(signal) is CLS.SignalVector:
-					if signal.role == 'out':
+				value = ""
+				if type(signal) == CLS.SignalVector:
+					if signal.role == 'out_vec':
 						for pos in range(signal.size):
 							value += '-'
 					else:
