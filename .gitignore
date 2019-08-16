@@ -28,6 +28,7 @@ hwsim/platforms/*/*.map
 hwsim/platforms/*/*.sym
 
 # hwsim example altera project
-hwsim/examples/vhdl_test_validation/db
-hwsim/examples/vhdl_test_validation/incremental_db
-hwsim/examples/vhdl_test_validation/output_files
+hwsim/examples/vhdl_test_validation_conc/db
+hwsim/examples/vhdl_test_validation_conc/incremental_db
+hwsim/examples/vhdl_test_validation_conc/output_files
+hwsim/examples/vhdl_test_validation_conc/*.qws
