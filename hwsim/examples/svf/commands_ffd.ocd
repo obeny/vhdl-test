@@ -1,0 +1,3 @@
+init
+svf vhdl_test_validation_ffd.svf
+shutdown
