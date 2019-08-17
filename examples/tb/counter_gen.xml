@@ -5,7 +5,7 @@
 		<clock name="clk" freq="100 k" val="0"/>
 
 		<in name="clr" val="0"/>
-		<in_vec name="value" size="4" order="desc" val="0000"/>
+		<in_vec name="value" size="2" order="desc" val="00"/>
 
 		<out name="z"/>
 	</signals>
@@ -13,7 +13,7 @@
 	<backends>
 		<vhdl>
 			<generics>
-				<param name="N" type="NATURAL" val="4"/>
+				<param name="N" type="NATURAL" val="2"/>
 			</generics>
 		</vhdl>
 		<hw>
@@ -37,7 +37,7 @@
 		<test name="TEST2: do not set output when clear active and value set">
 			<step>
 				<set sig="clr" val="1"/>
-				<set_vec sig="value" val="0001"/>
+				<set_vec sig="value" val="01"/>
 				<exp sig="z" val="l"/>
 			</step>
 			<step after="u015">
@@ -48,19 +48,19 @@
 		<!-- TEST 3: simple -->
 		<test name="TEST3: set output when value reached">
 			<seq>
-				<vec>#### - 0010 l</vec>
-				<vec>u015 - ---- h</vec>
-				<vec>u010 - ---- h</vec>
+				<vec>#### - 10 l</vec>
+				<vec>u015 - -- h</vec>
+				<vec>u010 - -- h</vec>
 			</seq>
 		</test>
 
 		<!-- TEST 4: simple -->
 		<test name="TEST4: output unchanged when clock is not ticking" clock_disable="clk">
 			<seq>
-				<vec>#### 1 ---- -</vec>
-				<vec>#### 0 0010 l</vec>
-				<vec>u015 - ---- l</vec>
-				<vec>u010 - ---- l</vec>
+				<vec>#### 1 -- -</vec>
+				<vec>#### 0 10 l</vec>
+				<vec>u015 - -- l</vec>
+				<vec>u010 - -- l</vec>
 			</seq>
 		</test>
 	</testcases>
