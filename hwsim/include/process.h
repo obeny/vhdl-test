@@ -36,7 +36,8 @@ typedef enum
 typedef enum
 {
     E_CLK_DEF_L = 0,
-    E_CLK_DEF_H = 1
+    E_CLK_DEF_H = 1,
+    E_CLK_DEF_X = 0xFF
 } e_clk_def_t;
 
 typedef struct
@@ -68,7 +69,6 @@ typedef struct
     UINT8 signals_cnt;
     UINT8 vector_cnt;
     UINT8 testcase_cnt;
-    UINT8 clk_pin_pos;
     UINT32 clock_period;
     UINT32 interval;
     UINT32 cur_ns;
@@ -78,6 +78,7 @@ typedef struct
     UINT8 cur_vector;
     UINT8 cur_testcase;
     UINT8 prev_testcase;
+    UINT8 clock_pin_pos;
 
     BYTE hiz[MAX_SIGNALS];
     vector_t vectors[MAX_VECTORS];

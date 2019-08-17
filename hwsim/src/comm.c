@@ -94,17 +94,25 @@ static bool cmdCpuReset(void)
 // --------------------------------------------------------------------------
 static bool cmdSetMeta(void)
 {
-    if (!usartRead(&usart_comm, comm_buffer+1, 13, COMM_TIMEOUT))
+    if (!usartRead(&usart_comm, comm_buffer+1, 14, COMM_TIMEOUT))
         goto fail;
 
-    if (checksum8Bit(comm_buffer, 13) == comm_buffer[13])
+    if (checksum8Bit(comm_buffer, 14) == comm_buffer[14])
     {
         rtdata.comp_type = comm_buffer[1];
-        rtdata.testcase_cnt = comm_buffer[2];
-        rtdata.vector_cnt = comm_buffer[3];
-        rtdata.signals_cnt = comm_buffer[4];
-        rtdata.clock_period = comm_buffer[5] | comm_buffer[6] << 8 | comm_buffer[7] << 16 | comm_buffer[8] << 24;
-        rtdata.interval = comm_buffer[9] | comm_buffer[10] << 8 | comm_buffer[11] << 16 | comm_buffer[12] << 24;
+        rtdata.clk_def_val = comm_buffer[2];
+        rtdata.testcase_cnt = comm_buffer[3];
+        rtdata.vector_cnt = comm_buffer[4];
+        rtdata.signals_cnt = comm_buffer[5];
+        rtdata.clock_period = comm_buffer[6] | comm_buffer[7] << 8 | comm_buffer[8] << 16 | comm_buffer[9] << 24;
+        rtdata.interval = comm_buffer[10] | comm_buffer[11] << 8 | comm_buffer[12] << 16 | comm_buffer[13] << 24;
+        rtdata.clock_pin_pos = rtdata.signals_cnt;
+
+        if (rtdata.comp_type == E_COMP_TYPE_SEQUENTIAL)
+        {
+            setPinDir(rtdata.clock_pin_pos, E_PINDIR_OUT);
+            setPinValue(rtdata.clock_pin_pos, rtdata.clk_def_val);
+        }
 
         usartSendByte(&usart_comm, 'O');
         return (true);
