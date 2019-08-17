@@ -14,14 +14,12 @@ end ff_d;
 
 architecture ff_d_arch of ff_d is
 begin
-	process (clk) is
+	process (clk, rst) is
 	begin
-	if rising_edge(clk) then
-		if rst = '1' then
-			q <= '0';
-		else
-			q <= d;
-		end if;
+	if rst = '1' then
+		q <= '0';
+	elsif rising_edge(clk) then
+		q <= d;
 	end if;
 	end process;
 end ff_d_arch;
