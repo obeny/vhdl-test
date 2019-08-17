@@ -24,7 +24,12 @@ class VectorWriter:
 		log.info("generateVector: " + file_name)
 		self.file = open(file_name, 'w')
 		self.file.write("#{0:s}\n".format(test.name))
-		self.file.write("#flags state:{0:d}\n".format(self.testcases.list[test_num-1].rememberState))
+		if self.testcases.list[test_num-1].clock_disable:
+			cd = '1'
+		else:
+			cd = '0'
+		self.file.write("#flags state:{0:d} clock_disable:{1:s}\n"\
+			.format(self.testcases.list[test_num-1].rememberState, cd))
 		self.file.write(self.header)
 
 		for command in test.content:

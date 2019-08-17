@@ -98,7 +98,7 @@ class Communication:
 		self.impl = impl
 
 		try:
-			self.comm = serial.Serial(port=port_name, baudrate=115200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=0.5)
+			self.comm = serial.Serial(port=port_name, baudrate=115200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=300.0)
 		except:
 			log.error("Couldn't find serial port: " + comm)
 
@@ -455,6 +455,7 @@ class Impl:
 			for l in vf:
 				if l.startswith("#flags"):
 					flag_r = int(l.split(" ")[1].split(":")[1][0])
+					flag_cd = int(l.split(" ")[2].split(":")[1][0])
 					continue
 				if l.startswith("#"):
 					continue
@@ -467,8 +468,8 @@ class Impl:
 				v.interval = interval
 				vs.append(v)
 
-				flags.append(flag_r << 0)
 				vector_no += 1
+			flags.append((flag_r << 0) | (flag_cd << 1))
 			vf.close()
 		return vs, flags
 
