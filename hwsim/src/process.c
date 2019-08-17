@@ -22,10 +22,9 @@ void initRuntimeData(void)
 // --------------------------------------------------------------------------
 bool executeTestVector(void)
 {
-    static UINT8 prev_testcase = 0;
-
-    if (prev_testcase == rtdata.cur_testcase)
+    if (!rtdata.skip_execute_default)
     {
+        rtdata.skip_execute_default = true;
         if (!rtdata.flags[rtdata.cur_testcase].flags.remember_state)
             executeDefaultVector();
     }
@@ -34,6 +33,8 @@ bool executeTestVector(void)
     ++rtdata.cur_vector;
     rtdata.prev_testcase = rtdata.cur_testcase;
     rtdata.cur_testcase = rtdata.vectors[rtdata.cur_vector].testcase;
+    if (rtdata.cur_testcase != rtdata.prev_testcase)
+        rtdata.skip_execute_default = false;
 
     return (true);
 }
@@ -51,12 +52,12 @@ static void executeVector(void)
     if (E_COMP_TYPE_SEQUENTIAL == rtdata.comp_type)
     {
         rtdata.cur_ns += rtdata.vectors[rtdata.cur_vector].interval;
+        clk_ticks = ((rtdata.cur_ns - 1) * 100);
+        clk_ticks = clk_ticks / rtdata.clock_period;
+        clk_ticks = clk_ticks - rtdata.cur_clk_ticks;
+        rtdata.cur_clk_ticks += clk_ticks;
         if (!rtdata.flags[rtdata.cur_testcase].flags.clock_disable)
         {
-            clk_ticks = ((rtdata.cur_ns - 1) * 100);
-            clk_ticks = clk_ticks / rtdata.clock_period;
-            clk_ticks = clk_ticks - rtdata.cur_clk_ticks;
-            rtdata.cur_clk_ticks += clk_ticks;
             for (tick = 0; tick < clk_ticks; ++tick)
                 tickClock(rtdata.clock_pin_pos);
         }
