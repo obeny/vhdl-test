@@ -210,8 +210,10 @@ class Communication:
 		bytelist.append(int(HwSimCommand.SET_META))
 		if self.impl.md.comp_type == 'c':
 			bytelist.append(int(CompType.CONCURRENT))
+			bytelist.append(0xFF)
 		else:
 			bytelist.append(int(CompType.SEQUENTIAL))
+			bytelist.append(self.impl.md.clock_def)
 		bytelist.append(self.impl.md.testcases)
 		bytelist.append(self.impl.md.vectors)
 		bytelist.append(self.impl.md.signals)
@@ -361,9 +363,18 @@ class Metadata:
 		self.interval = int(intervalToNs(md[4]))
 		self.clock_period = int(clockToNs(md[5]))
 
+		if self.comp_type == 's':
+			clk_def = md[0].split(':')[2]
+			if clk_def == 'l':
+				self.clock_def = 0
+			else:
+				self.clock_def = 1
+		else:
+			self.clock_def = 'x'
+
 	def __str__(self):
-		return "comp_type: {0:s}; signals: {1:d}; testcases: {2:d}; vectors: {3:d}; interval: {4:d}ns; clk_period: {5:f}ns"\
-			.format(self.comp_type, self.signals, self.testcases, self.vectors, self.interval, self.clock_period / 100.0)
+		return "comp_type: {0:s}; signals: {1:d}; testcases: {2:d}; vectors: {3:d}; interval: {4:d}ns; clk: {5:0.2f}ns ({6:s})"\
+			.format(self.comp_type, self.signals, self.testcases, self.vectors, self.interval, self.clock_period / 100.0, str(self.clock_def))
 
 class Vector:
 	vector_num = None
