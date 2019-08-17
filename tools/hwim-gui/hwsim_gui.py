@@ -75,6 +75,7 @@ class CommandType(IntEnum):
 	CFG_VECTOR = 4
 	DEF_VECTOR = 5
 	EXECUTE = 6
+	HIZ = 7
 
 class HwSimCommand(IntEnum):
 	RESET = ord('r')
@@ -83,6 +84,7 @@ class HwSimCommand(IntEnum):
 	SET_FLAGS = ord('f')
 	CFG_VECTOR = ord('v')
 	EXECUTE = ord('e')
+	HIZ = ord('z')
 
 class CompType(IntEnum):
 	CONCURRENT = 0
@@ -168,7 +170,8 @@ class Communication:
 			CommandType.CFG_VECTOR: HwSimCommand.CFG_VECTOR,
 			CommandType.DEF_VECTOR: HwSimCommand.CFG_VECTOR,
 			CommandType.SEND_REPORT: HwSimCommand.SEND_REPORT,
-			CommandType.EXECUTE: HwSimCommand.EXECUTE
+			CommandType.EXECUTE: HwSimCommand.EXECUTE,
+			CommandType.HIZ: HwSimCommand.HIZ
 		}
 
 		switcher = {
@@ -178,7 +181,8 @@ class Communication:
 			CommandType.CFG_VECTOR: self.__sendVector,
 			CommandType.DEF_VECTOR: self.__sendDefaultVector,
 			CommandType.SEND_REPORT: self.__sendReport,
-			CommandType.EXECUTE: self.__sendExecute
+			CommandType.EXECUTE: self.__sendExecute,
+			CommandType.HIZ: self.__sendHiz
 		}
 
 		func = switcher.get(command)
@@ -274,6 +278,18 @@ class Communication:
 
 		self.comm.write(b'ee')
 
+	def __sendHiz(self):
+		log.info("Sending hiz {0:d}->{1:d}".format(self.impl.hiz[self.cur_hiz][0], self.impl.hiz[self.cur_hiz][1]))
+
+		bytelist = []
+		bytelist.append(int(HwSimCommand.HIZ))
+		bytelist.append(self.impl.hiz[self.cur_hiz][0])
+		bytelist.append(self.impl.hiz[self.cur_hiz][1])
+		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
+
+		log.info("HIZ frame = " + str(bytelist))
+		self.comm.write(bytearray(bytelist))
+
 	def initSim(self):
 		if not self.__sendCmd(CommandType.RESET):
 			return False
@@ -281,6 +297,14 @@ class Communication:
 			return False
 		if not self.__sendCmd(CommandType.DEF_VECTOR):
 			return False
+		return True
+
+	def sendHiz(self):
+		self.cur_hiz = 0
+		for n in range(len(self.impl.hiz)):
+			if not self.__sendCmd(CommandType.HIZ):
+				return False
+			self.cur_hiz += 1
 		return True
 
 	def sendVectors(self):
@@ -395,10 +419,14 @@ class Impl:
 		signals = line.split(' ')
 		count = len(signals)
 		sig_map = []
+		hiz_map = []
 		for s in range(count):
-			sig_map.append(int(signals[s].split(':')[1])) 
+			e = signals[s].split(':')
+			sig_map.append(int(e[1]))
+			if len(e) == 3:
+				hiz_map.append((int(e[0]), int(e[2])))
 
-		return sig_map
+		return sig_map, hiz_map
 
 	def __loadVectors(self, files):
 		vs = []
@@ -434,7 +462,7 @@ class Impl:
 		log.info("Metadata = " + str(self.md))
 
 		log.info("Loading signal map")
-		self.sm = self.__loadSignalMap(self.map_file_path)
+		self.sm, self.hiz = self.__loadSignalMap(self.map_file_path)
 		log.info("SignalMap = " + str(self.sm))
 
 		log.info("Loading default vector")
@@ -460,6 +488,10 @@ class Impl:
 		if not self.communication.initSim():
 			log.error("HW simulator initialization failed")
 		log.info("HW simulator initialization OK")
+
+		if not self.communication.sendHiz():
+			log.error("Couldn't send HIZ information")
+		log.info("HW simulator sending HIZ OK")
 
 		if not self.communication.sendVectors():
 			log.error("Couldn't send vectors")

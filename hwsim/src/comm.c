@@ -21,6 +21,7 @@ static bool cmdSendReport(void);
 static bool cmdSetMeta(void);
 static bool cmdSetFlags(void);
 static bool cmdConfigVector(void);
+static bool cmdHiz(void);
 
 static bool cmdExecute(void);
 
@@ -48,6 +49,10 @@ bool handleCommand(void)
             return cmdSetMeta();
         case E_CMD_SET_FLAGS:
             return cmdSetFlags();
+        case E_CMD_HIZ:
+            return cmdHiz();
+        default:
+            break;
     }
     usartFlush(&usart_comm);
     usartSendByte(&usart_comm, '?');
@@ -224,6 +229,29 @@ static bool cmdExecute(void)
             return (true);
         }
     }
+    usartSendByte(&usart_comm, 'F');
+    return (false);
+}
+
+// --------------------------------------------------------------------------
+static bool cmdHiz(void)
+{
+    UINT8 signal;
+    UINT8 hiz;
+
+    if (!usartRead(&usart_comm, comm_buffer+1, 3, COMM_TIMEOUT))
+        goto fail;
+
+    if (checksum8Bit(comm_buffer, 3) == comm_buffer[3])
+    {
+        signal = comm_buffer[1];
+        hiz = comm_buffer[2];
+        rtdata.hiz[signal] = hiz;
+
+        usartSendByte(&usart_comm, 'O');
+        return (true);
+    }
+fail:
     usartSendByte(&usart_comm, 'F');
     return (false);
 }

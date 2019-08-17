@@ -23,7 +23,8 @@ enum
     E_SIGVAL_EXP_L = 'l',
     E_SIGVAL_EXP_H = 'h',
     E_SIGVAL_EXP_LZ = 'L',
-    E_SIGVAL_EXP_HZ = 'H'
+    E_SIGVAL_EXP_HZ = 'H',
+    E_SIGVAL_EXP_Z = 'Z'
 } e_sig_val;
 
 typedef enum
@@ -78,6 +79,7 @@ typedef struct
     UINT8 cur_testcase;
     UINT8 prev_testcase;
 
+    BYTE hiz[MAX_SIGNALS];
     vector_t vectors[MAX_VECTORS];
     flags_t flags[MAX_TESTCASES];
 } st_rtdata_t;

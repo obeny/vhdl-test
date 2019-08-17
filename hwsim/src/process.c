@@ -91,14 +91,16 @@ static void processSetSignal(UINT8 pos, BYTE val)
         case E_SIGVAL_SET_X:
             setPinDir(pos, E_PINDIR_IN);
             break;
+        default:
+            break;
     }
 }
 
 // --------------------------------------------------------------------------
 static bool processExpSignal(UINT8 pos, BYTE val)
 {
-    bool res;
-    bool exp;
+    bool res, exp;
+    bool z_l, z_h;
 
     switch (val)
     {
@@ -115,6 +117,19 @@ static bool processExpSignal(UINT8 pos, BYTE val)
             else
                 exp = true;
             return (res == exp);
+        case E_SIGVAL_EXP_Z:
+            if (0x00 == rtdata.hiz[pos])
+                return (true);
+            setPinDir(pos, E_PINDIR_IN);
+            setPinDir(rtdata.hiz[pos], E_PINDIR_OUT);
+            setPinValue(rtdata.hiz[pos], false);
+            z_l = getPinValue(pos);
+            setPinValue(rtdata.hiz[pos], true);
+            z_h = getPinValue(pos);
+            setPinDir(rtdata.hiz[pos], E_PINDIR_IN);
+            return ((false == z_l) && (true == z_h));
+        default:
+            break;
     }
 
     return (true);
