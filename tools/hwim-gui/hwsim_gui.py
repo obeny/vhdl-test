@@ -290,6 +290,11 @@ class Communication:
 		log.info("HIZ frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
 
+	def sendReset(self):
+		if not self.__sendCmd(CommandType.RESET):
+			return False
+		return True
+
 	def initSim(self):
 		if not self.__sendCmd(CommandType.RESET):
 			return False
@@ -503,6 +508,11 @@ class Impl:
 
 		self.communication.executeTests()
 		log.info("FINISHED (failed {0:d} of {1:d} testcases)".format(self.failed_testcases, self.md.testcases))
+
+		if not self.communication.sendReset():
+			log.error("HW simulator RESET failed")
+		else:
+			log.info("HW simulator RESET OK")
 
 		return
 #
