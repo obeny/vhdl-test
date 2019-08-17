@@ -1,0 +1,25 @@
+a - PIN_4 -> A0
+b - PIN_5 -> A1
+s - PIN_6 -> A2
+z - PIN_7 -> A3
+
+and:
+====
+comp:
+0 - PIN_3 -> 0(gnd)
+1 - PIN_2 -> 0(gnd)
+2 - PIN_1 -> 0(gnd)
+
+xor:
+====
+comp:
+0 - PIN_3 -> 0(gnd)
+1 - PIN_2 -> 0(gnd)
+2 - PIN_1 -> 1(vcc)
+
+mux:
+====
+comp:
+0 - PIN_3 -> 0(gnd)
+1 - PIN_2 -> 1(vcc)
+2 - PIN_1 -> 0(gnd)

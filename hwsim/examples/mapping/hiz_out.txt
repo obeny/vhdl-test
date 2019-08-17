@@ -1,0 +1,4 @@
+oe - PIN_1 -> A0
+a  - PIN_2 -> A1
+b  - PIN_3 -> A2
+b  - PIN_3 -> A3

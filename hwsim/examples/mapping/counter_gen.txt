@@ -1,0 +1,5 @@
+clk - PIN_1 -> A4
+clr - PIN_2 -> A0
+v1  - PIN_3 -> A1
+v0  - PIN_4 -> A2
+z   - PIN_5 -> A3
