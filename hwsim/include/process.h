@@ -63,10 +63,10 @@ typedef union
 
 typedef struct
 {
+    bool cont_testcase;
     e_comp_type_t comp_type;
     e_clk_def_t clk_def_val;
 
-    UINT8 skip_execute_default;
     UINT8 signals_cnt;
     UINT8 vector_cnt;
     UINT8 testcase_cnt;

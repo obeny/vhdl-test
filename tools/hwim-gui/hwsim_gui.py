@@ -456,6 +456,7 @@ class Impl:
 				if l.startswith("#flags"):
 					flag_r = int(l.split(" ")[1].split(":")[1][0])
 					flag_cd = int(l.split(" ")[2].split(":")[1][0])
+					flag_cr = int(l.split(" ")[3].split(":")[1][0])
 					continue
 				if l.startswith("#"):
 					continue
@@ -469,7 +470,7 @@ class Impl:
 				vs.append(v)
 
 				vector_no += 1
-			flags.append((flag_r << 0) | (flag_cd << 1))
+			flags.append((flag_r << 0) | (flag_cd << 1) (flag_cr << 2))
 			vf.close()
 		return vs, flags
 

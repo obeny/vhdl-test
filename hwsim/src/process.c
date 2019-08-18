@@ -22,19 +22,29 @@ void initRuntimeData(void)
 // --------------------------------------------------------------------------
 bool executeTestVector(void)
 {
-    if (!rtdata.skip_execute_default)
+    if (!rtdata.cont_testcase)
     {
-        rtdata.skip_execute_default = true;
+        rtdata.cont_testcase = true;
+
+        // reset signals if != remember_state through default vector
         if (!rtdata.flags[rtdata.cur_testcase].flags.remember_state)
             executeDefaultVector();
+
+        // reset clock if = clock_reset
+        if (rtdata.flags[rtdata.cur_testcase].flags.clock_reset)
+        {
+            rtdata.cur_clk_ticks = 0;
+            rtdata.cur_ns = 0;
+        }
     }
     executeVector();
 
     ++rtdata.cur_vector;
     rtdata.prev_testcase = rtdata.cur_testcase;
     rtdata.cur_testcase = rtdata.vectors[rtdata.cur_vector].testcase;
+    // new testcase started
     if (rtdata.cur_testcase != rtdata.prev_testcase)
-        rtdata.skip_execute_default = false;
+        rtdata.cont_testcase = false;
 
     return (true);
 }
