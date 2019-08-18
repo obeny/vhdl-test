@@ -32,7 +32,7 @@ class VectorWriter:
 			cr = '1'
 		else:
 			cr = '0'
-		self.file.write("#flags state:{0:d} clock_disable:{1:s} clock_reset{2:s}\n"\
+		self.file.write("#flags state:{0:d} clock_disable:{1:s} clock_reset:{2:s}\n"\
 			.format(self.testcases.list[test_num-1].rememberState, cd, cr))
 		self.file.write(self.header)
 
