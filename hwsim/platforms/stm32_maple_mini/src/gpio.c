@@ -9,31 +9,31 @@ static pin_data_t pin_data[GPIO_CNT] =
 {
     // pins used: a15,b3,b4 = jtag, a9,a10 = uart
     // GPIOA
-    {.port = GPIOA, .pin = GPIO_Pin_0},
-    {.port = GPIOA, .pin = GPIO_Pin_1},
-    {.port = GPIOA, .pin = GPIO_Pin_2},
-    {.port = GPIOA, .pin = GPIO_Pin_3},
-    {.port = GPIOA, .pin = GPIO_Pin_4},
-    {.port = GPIOA, .pin = GPIO_Pin_5},
-    {.port = GPIOA, .pin = GPIO_Pin_6},
-    {.port = GPIOA, .pin = GPIO_Pin_7},
-    {.port = GPIOA, .pin = GPIO_Pin_8},
-    {.port = GPIOA, .pin = GPIO_Pin_11},
-    {.port = GPIOA, .pin = GPIO_Pin_12},
+    {.port = GPIOA, .pin = GPIO_Pin_0},  // 0
+    {.port = GPIOA, .pin = GPIO_Pin_1},  // 1
+    {.port = GPIOA, .pin = GPIO_Pin_2},  // 2
+    {.port = GPIOA, .pin = GPIO_Pin_3},  // 3
+    {.port = GPIOA, .pin = GPIO_Pin_4},  // 4
+    {.port = GPIOA, .pin = GPIO_Pin_5},  // 5
+    {.port = GPIOA, .pin = GPIO_Pin_6},  // 6
+    {.port = GPIOA, .pin = GPIO_Pin_7},  // 7
+    {.port = GPIOA, .pin = GPIO_Pin_8},  // 8
+    {.port = GPIOA, .pin = GPIO_Pin_11}, // 9
+    {.port = GPIOA, .pin = GPIO_Pin_12}, // 10
     // GPIOB
-    {.port = GPIOB, .pin = GPIO_Pin_0},
-    {.port = GPIOB, .pin = GPIO_Pin_1},
-    {.port = GPIOB, .pin = GPIO_Pin_5},
-    {.port = GPIOB, .pin = GPIO_Pin_6},
-    {.port = GPIOB, .pin = GPIO_Pin_7},
-    {.port = GPIOB, .pin = GPIO_Pin_8},
-    {.port = GPIOB, .pin = GPIO_Pin_9},
-    {.port = GPIOB, .pin = GPIO_Pin_10},
-    {.port = GPIOB, .pin = GPIO_Pin_11},
-    {.port = GPIOB, .pin = GPIO_Pin_12},
-    {.port = GPIOB, .pin = GPIO_Pin_13},
-    {.port = GPIOB, .pin = GPIO_Pin_14},
-    {.port = GPIOB, .pin = GPIO_Pin_15}
+    {.port = GPIOB, .pin = GPIO_Pin_0},  // 11
+    {.port = GPIOB, .pin = GPIO_Pin_1},  // 12
+    {.port = GPIOB, .pin = GPIO_Pin_5},  // 13
+    {.port = GPIOB, .pin = GPIO_Pin_6},  // 14
+    {.port = GPIOB, .pin = GPIO_Pin_7},  // 15
+    {.port = GPIOB, .pin = GPIO_Pin_8},  // 16
+    {.port = GPIOB, .pin = GPIO_Pin_9},  // 17
+    {.port = GPIOB, .pin = GPIO_Pin_10}, // 18
+    {.port = GPIOB, .pin = GPIO_Pin_11}, // 19
+    {.port = GPIOB, .pin = GPIO_Pin_12}, // 20
+    {.port = GPIOB, .pin = GPIO_Pin_13}, // 21
+    {.port = GPIOB, .pin = GPIO_Pin_14}, // 22
+    {.port = GPIOB, .pin = GPIO_Pin_15}  // 23
 };
 
 // static functions

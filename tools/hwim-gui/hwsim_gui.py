@@ -44,7 +44,7 @@ def clockToNs(str):
 
 	switcher = {
 		"k": 1000,
-		"m": 1000 * 1000,
+		"M": 1000 * 1000,
 	}
 
 	if value == 0:
@@ -470,7 +470,7 @@ class Impl:
 				vs.append(v)
 
 				vector_no += 1
-			flags.append((flag_r << 0) | (flag_cd << 1) (flag_cr << 2))
+			flags.append((flag_r << 0) | (flag_cd << 1) | (flag_cr << 2))
 			vf.close()
 		return vs, flags
 
