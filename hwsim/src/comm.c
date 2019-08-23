@@ -177,11 +177,13 @@ static bool cmdSendReport(void)
             comm_buffer[buff_pos+2] = (rtdata.vectors[first_vector + index].failed_signals >> 16) & 0xFF;
             comm_buffer[buff_pos+3] = (rtdata.vectors[first_vector + index].failed_signals >> 24) & 0xFF;
         }
-        comm_buffer[2 + sizeof(UINT32)*vectors + 1] = rtdata.cur_clk_ticks_cnt & 0xFF;
-        comm_buffer[2 + sizeof(UINT32)*vectors + 2] = (rtdata.cur_clk_ticks_cnt >> 8) & 0xFF;
-        comm_buffer[2 + sizeof(UINT32)*vectors + 3] = rtdata.total_clk_ticks_cnt & 0xFF;
-        comm_buffer[2 + sizeof(UINT32)*vectors + 4] = (rtdata.total_clk_ticks_cnt >> 8) & 0xFF;
-        len = 2 + 4 + (sizeof(UINT32)*vectors);
+        comm_buffer[2 + sizeof(UINT32)*index] = rtdata.total_clk_ticks_cnt & 0xFF;
+        comm_buffer[2 + sizeof(UINT32)*index + 1] = (rtdata.total_clk_ticks_cnt >> 8) & 0xFF;
+        comm_buffer[2 + sizeof(UINT32)*index + 2] = rtdata.cur_ns & 0xFF;
+        comm_buffer[2 + sizeof(UINT32)*index + 3] = (rtdata.cur_ns >> 8) & 0xFF;
+        comm_buffer[2 + sizeof(UINT32)*index + 4] = (rtdata.cur_ns >> 16) & 0xFF;
+        comm_buffer[2 + sizeof(UINT32)*index + 5] = (rtdata.cur_ns >> 24) & 0xFF;
+        len = 2 + 2 + 4 + (sizeof(UINT32)*vectors);
         comm_buffer[len] = checksum8Bit(comm_buffer, len);
 
         usartSend(&usart_comm, comm_buffer, len+1);

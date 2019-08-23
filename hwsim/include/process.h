@@ -93,7 +93,6 @@ typedef struct
     UINT32 cur_ns;
     UINT32 cur_clk_ticks;
 
-    UINT16 cur_clk_ticks_cnt;
     UINT16 total_clk_ticks_cnt;
 
     UINT8 broken_frames;

@@ -69,7 +69,6 @@ static void executeVector(void)
         if (!rtdata.flags[rtdata.cur_testcase].flags.clock_disable)
         {
             rtdata.total_clk_ticks_cnt += clk_ticks;
-            rtdata.cur_clk_ticks_cnt = clk_ticks;
 
             for (tick = 0; tick < clk_ticks; ++tick)
                 tickClock(rtdata.meta.clock_pin_pos);
