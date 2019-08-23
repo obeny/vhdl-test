@@ -56,24 +56,27 @@ static void executeVector(void)
     UINT32 clk_ticks;
     UINT32 tick;
 
-    for (UINT8 signal = 0; signal < rtdata.signals_cnt; ++signal)
+    for (UINT8 signal = 0; signal < rtdata.meta.signals_cnt; ++signal)
         processSetSignal(signal, rtdata.vectors[rtdata.cur_vector].content[signal]);
 
-    if (E_COMP_TYPE_SEQUENTIAL == rtdata.comp_type)
+    if (E_COMP_TYPE_SEQUENTIAL == rtdata.meta.comp_type)
     {
         rtdata.cur_ns += rtdata.vectors[rtdata.cur_vector].interval;
-        clk_ticks = ((rtdata.cur_ns - 1) * 100);
-        clk_ticks = clk_ticks / rtdata.clock_period;
+        clk_ticks = (rtdata.cur_ns * 1000) - 1;
+        clk_ticks = clk_ticks / rtdata.meta.clock_period;
         clk_ticks = clk_ticks - rtdata.cur_clk_ticks;
         rtdata.cur_clk_ticks += clk_ticks;
         if (!rtdata.flags[rtdata.cur_testcase].flags.clock_disable)
         {
+            rtdata.total_clk_ticks_cnt += clk_ticks;
+            rtdata.cur_clk_ticks_cnt = clk_ticks;
+
             for (tick = 0; tick < clk_ticks; ++tick)
-                tickClock(rtdata.clock_pin_pos);
+                tickClock(rtdata.meta.clock_pin_pos);
         }
     }
 
-    for (UINT8 signal = 0; signal < rtdata.signals_cnt; ++signal)
+    for (UINT8 signal = 0; signal < rtdata.meta.signals_cnt; ++signal)
     {
         if (!processExpSignal(signal, rtdata.vectors[rtdata.cur_vector].content[signal]))
             rtdata.vectors[rtdata.cur_vector].failed_signals |= (1 << signal);
@@ -83,7 +86,7 @@ static void executeVector(void)
 // --------------------------------------------------------------------------
 static void executeDefaultVector(void)
 {
-    for (UINT8 signal = 0; signal < rtdata.signals_cnt; ++signal)
+    for (UINT8 signal = 0; signal < rtdata.meta.signals_cnt; ++signal)
         processSetSignal(signal, rtdata.vectors[VECTOR_DEFAULTS_POS].content[signal]);
 }
 
@@ -122,14 +125,19 @@ static bool processExpSignal(UINT8 pos, BYTE val)
         case E_SIGVAL_EXP_LZ:
         case E_SIGVAL_EXP_H:
         case E_SIGVAL_EXP_HZ:
+        {
             setPinDir(pos, E_PINDIR_IN);
             res = getPinValue(pos);
             if ((E_SIGVAL_EXP_L == val) || (E_SIGVAL_EXP_LZ == val))
                 exp = false;
             else
                 exp = true;
-            return (res == exp);
+            if (res == exp)
+                return (true);
+            return (false);
+        }
         case E_SIGVAL_EXP_Z:
+        {
             if (0x00 == rtdata.hiz[pos])
                 return (true);
             setPinDir(pos, E_PINDIR_IN);
@@ -139,7 +147,10 @@ static bool processExpSignal(UINT8 pos, BYTE val)
             setPinValue(rtdata.hiz[pos], true);
             z_h = getPinValue(pos);
             setPinDir(rtdata.hiz[pos], E_PINDIR_IN);
-            return ((false == z_l) && (true == z_h));
+            if ((false == z_l) && (true == z_h))
+                return (true);
+            return (false);
+        }
         default:
             break;
     }

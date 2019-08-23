@@ -3,6 +3,8 @@
 #include "process.h"
 #include "gpio.h"
 
+#define CLK_TICK_DELAY_CNT 10
+
 extern st_rtdata_t rtdata;
 
 static pin_data_t pin_data[GPIO_CNT] =
@@ -83,16 +85,16 @@ bool getPinValue(UINT8 gpio)
 // --------------------------------------------------------------------------
 void tickClock(UINT8 gpio)
 {
-    if (E_CLK_DEF_H == rtdata.clk_def_val)
+    if (E_CLK_DEF_H == rtdata.meta.clk_def_val)
     {
         setPinValue(gpio, false);
-        NOP;
+        for (volatile UINT8 d = 0; d < CLK_TICK_DELAY_CNT; ++d) NOP;
         setPinValue(gpio, true);
     }
     else
     {
         setPinValue(gpio, true);
-        NOP;
+        for (volatile UINT8 d = 0; d < CLK_TICK_DELAY_CNT; ++d) NOP;
         setPinValue(gpio, false);
     }
 }

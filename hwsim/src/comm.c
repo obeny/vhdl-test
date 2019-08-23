@@ -99,19 +99,19 @@ static bool cmdSetMeta(void)
 
     if (checksum8Bit(comm_buffer, 14) == comm_buffer[14])
     {
-        rtdata.comp_type = comm_buffer[1];
-        rtdata.clk_def_val = comm_buffer[2];
-        rtdata.testcase_cnt = comm_buffer[3];
-        rtdata.vector_cnt = comm_buffer[4];
-        rtdata.signals_cnt = comm_buffer[5];
-        rtdata.clock_period = comm_buffer[6] | comm_buffer[7] << 8 | comm_buffer[8] << 16 | comm_buffer[9] << 24;
-        rtdata.interval = comm_buffer[10] | comm_buffer[11] << 8 | comm_buffer[12] << 16 | comm_buffer[13] << 24;
-        rtdata.clock_pin_pos = rtdata.signals_cnt;
+        rtdata.meta.comp_type = comm_buffer[1];
+        rtdata.meta.clk_def_val = comm_buffer[2];
+        rtdata.meta.testcase_cnt = comm_buffer[3];
+        rtdata.meta.vector_cnt = comm_buffer[4];
+        rtdata.meta.signals_cnt = comm_buffer[5];
+        rtdata.meta.clock_period = comm_buffer[6] | comm_buffer[7] << 8 | comm_buffer[8] << 16 | comm_buffer[9] << 24;
+        rtdata.meta.interval = comm_buffer[10] | comm_buffer[11] << 8 | comm_buffer[12] << 16 | comm_buffer[13] << 24;
+        rtdata.meta.clock_pin_pos = rtdata.meta.signals_cnt;
 
-        if (rtdata.comp_type == E_COMP_TYPE_SEQUENTIAL)
+        if (rtdata.meta.comp_type == E_COMP_TYPE_SEQUENTIAL)
         {
-            setPinDir(rtdata.clock_pin_pos, E_PINDIR_OUT);
-            setPinValue(rtdata.clock_pin_pos, rtdata.clk_def_val);
+            setPinDir(rtdata.meta.clock_pin_pos, E_PINDIR_OUT);
+            setPinValue(rtdata.meta.clock_pin_pos, rtdata.meta.clk_def_val);
         }
 
         usartSendByte(&usart_comm, 'O');
@@ -164,7 +164,7 @@ static bool cmdSendReport(void)
         testcase = rtdata.prev_testcase;
         for (index = 0; rtdata.vectors[index].testcase != testcase; ++index);
         first_vector = index;
-        for (; (index < rtdata.vector_cnt) && (rtdata.vectors[index].testcase == testcase); ++index);
+        for (; (index < rtdata.meta.vector_cnt) && (rtdata.vectors[index].testcase == testcase); ++index);
         vectors = index - first_vector;
         usartSendByte(&usart_comm, 'O');
 
@@ -177,7 +177,11 @@ static bool cmdSendReport(void)
             comm_buffer[buff_pos+2] = (rtdata.vectors[first_vector + index].failed_signals >> 16) & 0xFF;
             comm_buffer[buff_pos+3] = (rtdata.vectors[first_vector + index].failed_signals >> 24) & 0xFF;
         }
-        len = 2 + (sizeof(UINT32)*vectors);
+        comm_buffer[2 + sizeof(UINT32)*vectors + 1] = rtdata.cur_clk_ticks_cnt & 0xFF;
+        comm_buffer[2 + sizeof(UINT32)*vectors + 2] = (rtdata.cur_clk_ticks_cnt >> 8) & 0xFF;
+        comm_buffer[2 + sizeof(UINT32)*vectors + 3] = rtdata.total_clk_ticks_cnt & 0xFF;
+        comm_buffer[2 + sizeof(UINT32)*vectors + 4] = (rtdata.total_clk_ticks_cnt >> 8) & 0xFF;
+        len = 2 + 4 + (sizeof(UINT32)*vectors);
         comm_buffer[len] = checksum8Bit(comm_buffer, len);
 
         usartSend(&usart_comm, comm_buffer, len+1);
@@ -194,7 +198,7 @@ static bool cmdConfigVector(void)
     UINT8 vector_num;
     UINT8 testcase_num;
     UINT8 payload_size =
-        sizeof(vector_num) + sizeof(testcase_num) + sizeof(rtdata.vectors[0].interval) + rtdata.signals_cnt;
+        sizeof(vector_num) + sizeof(testcase_num) + sizeof(rtdata.vectors[0].interval) + rtdata.meta.signals_cnt;
 
     if (!usartRead(&usart_comm, comm_buffer+1, payload_size+1, COMM_TIMEOUT))
         goto fail;
@@ -207,13 +211,13 @@ static bool cmdConfigVector(void)
 
         if (!((vector_num == VECTOR_DEFAULTS) && (VECTOR_DEFAULT_INTVAL == interval)))
         {
-            if (vector_num > rtdata.vector_cnt)
+            if (vector_num > rtdata.meta.vector_cnt)
                 goto fail;
         }
         else
             vector_num = VECTOR_DEFAULTS_POS;
 
-        memcpy(&rtdata.vectors[vector_num].content, &comm_buffer[7], rtdata.signals_cnt);
+        memcpy(&rtdata.vectors[vector_num].content, &comm_buffer[7], rtdata.meta.signals_cnt);
         rtdata.vectors[vector_num].interval = interval;
         rtdata.vectors[vector_num].testcase = testcase_num;
 
