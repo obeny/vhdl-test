@@ -50,7 +50,7 @@ def clockToNs(str):
 	if value == 0:
 		return 100
 
-	return (((1000 * 1000 * 1000) / switcher.get(div)) * 100) / value
+	return (((1000 * 1000 * 1000) / switcher.get(div)) * 1000) / value
 
 def intervalStrToNs(str):
 	mul = str[0]
@@ -358,10 +358,8 @@ class Metadata:
 		md_file.close()
 		self.comp_type = md[0].split(':')[1]
 		self.signals = int(md[1].split(':')[1])
-		self.testcases = int(md[2].split(':')[1])
-		self.vectors = int(md[3].split(':')[1])
-		self.interval = int(intervalToNs(md[4]))
-		self.clock_period = int(clockToNs(md[5]))
+		self.interval = int(intervalToNs(md[2]))
+		self.clock_period = int(clockToNs(md[3]))
 
 		if self.comp_type == 's':
 			clk_def = md[0].split(':')[2]
@@ -374,7 +372,7 @@ class Metadata:
 
 	def __str__(self):
 		return "comp_type: {0:s}; signals: {1:d}; testcases: {2:d}; vectors: {3:d}; interval: {4:d}ns; clk: {5:0.2f}ns ({6:s})"\
-			.format(self.comp_type, self.signals, self.testcases, self.vectors, self.interval, self.clock_period / 100.0, str(self.clock_def))
+			.format(self.comp_type, self.signals, self.testcases, self.vectors, self.interval, self.clock_period / 1000.0, str(self.clock_def))
 
 class Vector:
 	vector_num = None
@@ -390,8 +388,9 @@ class Vector:
 # IMPLEMENTATION
 # ==============
 class Impl:
-	def __init__(self, target_sim_path, comm, comp, verbose):
+	def __init__(self, target_sim_path, comm, comp, tc, verbose):
 		log.setVerbose(verbose)
+		self.tc = tc
 		self.failed_testcases = 0
 		self.communication = Communication(comm, self)
 
@@ -449,8 +448,9 @@ class Impl:
 		flags = []
 		vector_no = 0
 
+		tc = 0
 		for f in files:
-			tc = int(f[len(f)-6:len(f)-4])
+			tc += 1
 			vf = open(f)
 			for l in vf:
 				if l.startswith("#flags"):
@@ -475,24 +475,30 @@ class Impl:
 		return vs, flags
 
 	def run(self):
-		log.info("Loading metadata")
-		self.md = Metadata(self.metadata_file_path)
-		log.info("Metadata = " + str(self.md))
-
 		log.info("Loading signal map")
 		self.sm, self.hiz = self.__loadSignalMap(self.map_file_path)
 		log.info("SignalMap = " + str(self.sm))
+
+		log.info("Loading metadata")
+		self.md = Metadata(self.metadata_file_path)
 
 		log.info("Loading default vector")
 		self.dv = self.__loadDefaultVector(self.def_vector_path)
 		log.info("DefVector = " + str(self.dv))
 
 		log.info("Building vector file list")
-		vec_list = glob.glob(self.target_sim_path + "/" + self.comp + "*.vec")
+		if self.tc:
+			vec_list = []
+			tc_list = self.tc.split(',')
+			for i in tc_list:
+				vec_list.append(self.target_sim_path + "/" + self.comp + "_{0:02d}.vec".format(int(i)))
+		else:
+			vec_list = glob.glob(self.target_sim_path + "/" + self.comp + "*.vec")
 		for vec in vec_list:
 			if not vec.find("df.vec") == -1:
 				vec_list.remove(vec)
 		vec_list.sort()
+		self.md.testcases = len(vec_list)
 		log.info("VectorFiles = " + str(vec_list))
 
 		log.info("Building vectors list")
@@ -500,8 +506,9 @@ class Impl:
 		log.info("Vectors:")
 		for v in self.vs:
 			log.info(str(v))
-		if not len(self.vs) == self.md.vectors:
-			log.error("Vectors count mismatch: {0:d} != {1:d}".format(len(self.vs), self.md.vectors))
+		self.md.vectors = len(self.vs)
+
+		log.info("Metadata = " + str(self.md))
 
 		if not self.communication.initSim():
 			log.error("HW simulator initialization failed")
@@ -539,6 +546,7 @@ def run():
 	arg_parser.add_argument("comp", help="component name")
 
 	arg_parser.add_argument("--com", help="UART communication port", required=True)
+	arg_parser.add_argument("--tc", help="run only given testcases; comma delimeted")
 
 	arg_parser.add_argument("--verbose", help="more verbose logging", action="store_true")
 	arg_parser.add_argument("--version", action="version", version="%(prog)s-" + app_version)
@@ -547,6 +555,7 @@ def run():
 
 	comm = args.com
 	comp = args.comp
+	tc = args.tc
 	verbose = args.verbose
 
 	app_dir = os.path.dirname(exec_name)
@@ -554,7 +563,7 @@ def run():
 	if not os.path.isdir(target_sim_path):
 		log.error("Directory {0:s} doesn't exist".format(target_sim_path))
 
-	app = Impl(target_sim_path, comm, comp, verbose)
+	app = Impl(target_sim_path, comm, comp, tc, verbose)
 	app.run()
 
 # ENTRY POINT
