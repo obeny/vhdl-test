@@ -98,7 +98,7 @@ class Communication:
 		self.impl = impl
 
 		try:
-			self.comm = serial.Serial(port=port_name, baudrate=115200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=300.0)
+			self.comm = serial.Serial(port=port_name, baudrate=230400, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=300.0)
 		except:
 			log.error("Couldn't find serial port: " + comm)
 
@@ -133,7 +133,7 @@ class Communication:
 
 		failed_vectors = 0
 		vectors_per_tc = self.__getTestcaseVectorCount(self.cur_testcase)
-		byte_cnt = 3 + 4 * vectors_per_tc
+		byte_cnt = 3 + 4 * vectors_per_tc + 2 + 4
 		report = self.comm.read(byte_cnt)
 		chksum = self.__checkSum(report, byte_cnt - 1)
 		if not report[byte_cnt - 1] == chksum:
@@ -160,6 +160,16 @@ class Communication:
 			self.__printFailedSignals(val)
 		if failed_vectors:
 			self.impl.failed_testcases += 1
+
+		clk_ticks = report[vec_rep_start + 4]
+		clk_ticks += report[vec_rep_start + 5] << 8
+
+		ns = report[vec_rep_start + 4 + 2]
+		ns += report[vec_rep_start + 4 + 3] << 8
+		ns += report[vec_rep_start + 4 + 4] << 16
+		ns += report[vec_rep_start + 4 + 5] << 24
+
+		log.info("Total clock ticks: {0:d}; Total time: {1:d} ns".format(clk_ticks, ns))
 		return True
 
 	def __sendCmd(self, command):
