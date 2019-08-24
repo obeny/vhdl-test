@@ -8,7 +8,6 @@ import sys
 
 import log
 
-from enum import Enum
 from enum import IntEnum
 
 verbose=False
@@ -124,9 +123,12 @@ class Communication:
 			if (val & 1 << i):
 				l.append(i)
 		if not len(l) == 0:
-			log.note("Expectations not met: " + str(l))
+			sigs = ""
+			for le in l:
+				sigs += "[{0:d}]->{1:s} ".format(le, self.impl.sm[le][1])
+			log.warning("Expectations not met: " + log.TermColor.RED + sigs + log.TermColor.NC)
 		else:
-			log.note("Expectations OK")
+			log.info("Expectations " + log.TermColor.LGREEN + "OK" + log.TermColor.NC)
 
 	def __fetchReport(self):
 		log.info("REPORT:")
@@ -137,7 +139,7 @@ class Communication:
 		report = self.comm.read(byte_cnt)
 		chksum = self.__checkSum(report, byte_cnt - 1)
 		if not report[byte_cnt - 1] == chksum:
-			log.info("Checksum mismatch: {0:d} != {1:d}".format(report[byte_cnt - 1], chksum))
+			log.warning("Checksum mismatch: {0:d} != {1:d}".format(report[byte_cnt - 1], chksum))
 			return False
 		for v in range(vectors_per_tc):
 			val = 0
@@ -200,7 +202,7 @@ class Communication:
 		resp = self.comm.read(1)
 		command_str = str(command).split('.')[1]
 		if resp == b'O':
-			log.info("Request '{0:s}' OK".format(command_str))
+			log.debug("Request '{0:s}' OK".format(command_str))
 		else:
 			log.info("Request '{0:s}' failed, response={1:s}".format(command_str, str(resp)))
 			return False;
@@ -210,7 +212,7 @@ class Communication:
 		return True
 
 	def __sendCmdReset(self):
-		log.info("Resetting simulator")
+		log.note("Resetting simulator")
 		self.comm.write(b'rr')
 
 	def __sendCmdMeta(self):
@@ -233,7 +235,7 @@ class Communication:
 			bytelist.append(e)
 		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
 
-		log.info("Meta frame = " + str(bytelist))
+		log.debug("Meta frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
 
 	def __sendCmdFlags(self):
@@ -245,7 +247,7 @@ class Communication:
 		bytelist.append(self.impl.flags[self.cur_testcase])
 		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
 
-		log.info("Flags frame = " + str(bytelist))
+		log.debug("Flags frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
 
 	def __sendDefaultVector(self):
@@ -258,14 +260,14 @@ class Communication:
 		for e in self.impl.dv.interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
 		for s in self.impl.sm:
-			bytelist.append(ord(self.impl.dv.content[s]))
+			bytelist.append(ord(self.impl.dv.content[int(s[2])]))
 		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
 
-		log.info("Default vector frame = " + str(bytelist))
+		log.debug("Default vector frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
 
 	def __sendVector(self):
-		log.info("Sending vector")
+		log.note("Sending vector {0:d}/{1:d}".format(self.cur_vec + 1, self.impl.md.vectors))
 
 		bytelist = []
 		bytelist.append(int(HwSimCommand.CFG_VECTOR))
@@ -274,24 +276,24 @@ class Communication:
 		for e in self.impl.vs[self.cur_vec].interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
 		for s in self.impl.sm:
-			bytelist.append(ord(self.impl.vs[self.cur_vec].content[s]))
+			bytelist.append(ord(self.impl.vs[self.cur_vec].content[s[2]]))
 		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
 
-		log.info("Vector frame = " + str(bytelist))
+		log.debug("Vector frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
 
 	def __sendReport(self):
-		log.info("Requesting current report")
+		log.note("Requesting current report")
 
 		self.comm.write(b'ss')
 
 	def __sendExecute(self):
-		log.info("Requesting execute vector {0:d}/{1:d}".format(self.cur_vec_execute, len(self.impl.vs)))
+		log.note("Requesting execute vector {0:d}/{1:d}".format(self.cur_vec_execute, len(self.impl.vs)))
 
 		self.comm.write(b'ee')
 
 	def __sendHiz(self):
-		log.info("Sending hiz {0:d}->{1:d}".format(self.impl.hiz[self.cur_hiz][0], self.impl.hiz[self.cur_hiz][1]))
+		log.note("Sending hiz {0:d}->{1:d}".format(self.impl.hiz[self.cur_hiz][0], self.impl.hiz[self.cur_hiz][1]))
 
 		bytelist = []
 		bytelist.append(int(HwSimCommand.HIZ))
@@ -299,7 +301,7 @@ class Communication:
 		bytelist.append(self.impl.hiz[self.cur_hiz][1])
 		bytelist.append(self.__checkSum(bytelist, len(bytelist)))
 
-		log.info("HIZ frame = " + str(bytelist))
+		log.debug("HIZ frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
 
 	def sendReset(self):
@@ -412,13 +414,13 @@ class Impl:
 		self.def_vector_path = target_sim_path + "/" + comp + "_df.vec"
 
 		if not os.path.exists(self.metadata_file_path):
-			log.error("Couldn't find metadata file: " + self.metadata_file_path)
+			log.fatal("Couldn't find metadata file: " + self.metadata_file_path)
 
 		if not os.path.exists(self.def_vector_path):
-			log.error("Couldn't find default vector file: " + self.def_vector_path)
+			log.fatal("Couldn't find default vector file: " + self.def_vector_path)
 
 		if not os.path.exists(self.map_file_path):
-			log.error("Couldn't find map file: " + self.map_file_path)
+			log.fatal("Couldn't find map file: " + self.map_file_path)
 
 	def __loadDefaultVector(self, fpath):
 		dv_file = open(fpath)
@@ -447,9 +449,10 @@ class Impl:
 		hiz_map = []
 		for s in range(count):
 			e = signals[s].split(':')
-			sig_map.append(int(e[1]))
+			x = e[0].split("-")
+			sig_map.append((int(x[0]), x[1], int(e[1])))
 			if len(e) == 3:
-				hiz_map.append((int(e[0]), int(e[2])))
+				hiz_map.append((int(e[0].split("-")[0]), int(e[2])))
 
 		return sig_map, hiz_map
 
@@ -485,18 +488,18 @@ class Impl:
 		return vs, flags
 
 	def run(self):
-		log.info("Loading signal map")
+		log.note("Loading signal map")
 		self.sm, self.hiz = self.__loadSignalMap(self.map_file_path)
-		log.info("SignalMap = " + str(self.sm))
+		log.debug("SignalMap = " + str(self.sm))
 
-		log.info("Loading metadata")
+		log.note("Loading metadata")
 		self.md = Metadata(self.metadata_file_path)
 
-		log.info("Loading default vector")
+		log.note("Loading default vector")
 		self.dv = self.__loadDefaultVector(self.def_vector_path)
-		log.info("DefVector = " + str(self.dv))
+		log.debug("DefVector = " + str(self.dv))
 
-		log.info("Building vector file list")
+		log.note("Building vector file list")
 		if self.tc:
 			vec_list = []
 			tc_list = self.tc.split(',')
@@ -509,56 +512,58 @@ class Impl:
 				vec_list.remove(vec)
 		vec_list.sort()
 		self.md.testcases = len(vec_list)
-		log.info("VectorFiles = " + str(vec_list))
+		log.debug("VectorFiles = " + str(vec_list))
 
-		log.info("Building vectors list")
+		log.note("Building vectors list")
 		self.vs, self.flags = self.__loadVectors(vec_list)
-		log.info("Vectors:")
+		log.debug("Vectors:")
 		for v in self.vs:
-			log.info(str(v))
+			log.debug(str(v))
 		self.md.vectors = len(self.vs)
 
-		log.info("Metadata = " + str(self.md))
+		log.note("Metadata = " + str(self.md))
 
 		if not self.communication.initSim():
 			log.error("HW simulator initialization failed")
-		log.info("HW simulator initialization OK")
+		log.info("HW simulator initialization " + log.TermColor.LGREEN + "OK" + log.TermColor.NC)
 
 		if not self.communication.sendHiz():
 			log.error("Couldn't send HIZ information")
-		log.info("HW simulator sending HIZ OK")
+		log.info("HW simulator sending HIZ " + log.TermColor.LGREEN + "OK" + log.TermColor.NC)
 
 		if not self.communication.sendVectors():
 			log.error("Couldn't send vectors")
-		log.info("HW simulator sending vectors OK")
+		log.info("HW simulator sending vectors " + log.TermColor.LGREEN + "OK" + log.TermColor.NC)
 
 		if not self.communication.sendFlags():
 			log.error("Couldn't send flags")
-		log.info("HW simulator sending flags OK")
+		log.info("HW simulator sending flags " + log.TermColor.LGREEN + "OK" + log.TermColor.NC)
 
 		self.communication.executeTests()
-		log.info("FINISHED (failed {0:d} of {1:d} testcases)".format(self.failed_testcases, self.md.testcases))
+		if self.failed_testcases > 0:
+			log.warning((log.TermColor.RED + "FINISHED (failed {0:d} of {1:d} testcases)" + log.TermColor.NC).format(self.failed_testcases, self.md.testcases))
+		else:
+			log.info((log.TermColor.LGREEN + "FINISHED (failed {0:d} of {1:d} testcases)" + log.TermColor.NC).format(self.failed_testcases, self.md.testcases))
 
 		if not self.communication.sendReset():
 			log.error("HW simulator RESET failed")
 		else:
-			log.info("HW simulator RESET OK")
+			log.note("HW simulator RESET " + log.TermColor.LGREEN + "OK" + log.TermColor.NC)
 
 		return
 #
 # RUN
 # ===
 def run():
-	global verbose
 	arg_parser = argparse.ArgumentParser(description=app_description, epilog=app_epilog,\
 		prog=app_prog, formatter_class=argparse.RawDescriptionHelpFormatter)
 
-	arg_parser.add_argument("comp", help="component name")
+	arg_parser.add_argument("comp", help="component name <required>")
 
-	arg_parser.add_argument("--com", help="UART communication port", required=True)
-	arg_parser.add_argument("--tc", help="run only given testcases; comma delimeted")
+	arg_parser.add_argument("-c", "--com", help="UART communication port <required>", required=True)
+	arg_parser.add_argument("-t", "--tc", help="run only given testcases; comma delimeted")
 
-	arg_parser.add_argument("--verbose", help="more verbose logging", action="store_true")
+	arg_parser.add_argument("-v", "--verbose", help="logging verbosity (note, debug)", nargs='?', choices=['note', 'debug'])
 	arg_parser.add_argument("--version", action="version", version="%(prog)s-" + app_version)
 
 	args = arg_parser.parse_args()
@@ -566,14 +571,20 @@ def run():
 	comm = args.com
 	comp = args.comp
 	tc = args.tc
-	verbose = args.verbose
+	if args.verbose == None:
+		verbose = log.Verbosity.INFO
+	elif args.verbose == 'note':
+		verbose = log.Verbosity.NOTE
+	else:
+		verbose = log.Verbosity.DEBUG
 
 	app_dir = os.path.dirname(exec_name)
 	target_sim_path = os.path.realpath(app_dir + "/../../target_sim")
 	if not os.path.isdir(target_sim_path):
-		log.error("Directory {0:s} doesn't exist".format(target_sim_path))
+		log.fatal("Directory {0:s} doesn't exist".format(target_sim_path))
 
 	app = Impl(target_sim_path, comm, comp, tc, verbose)
+	log.info("running hwsim")
 	app.run()
 
 # ENTRY POINT
