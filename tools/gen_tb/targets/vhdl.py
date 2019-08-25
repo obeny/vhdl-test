@@ -200,7 +200,7 @@ class BackendSimWriter:
 
 # class TestWriter - builds test for given target (vhdl)
 class TestWriter:
-	def __init__(self, meta, file, vector_writer):
+	def __init__(self, meta, file, vector_writer, file_name):
 		self.meta = meta
 		self.component = meta.component
 		self.signals = meta.signals
@@ -212,7 +212,7 @@ class TestWriter:
 		self.deps = meta.backend_data.deps
 
 		self.component_name = self.component.name
-		self.tb_name = self.component_name + "_tb"
+		self.tb_name = file_name + "_tb"
 		self.testbench_duration = 0
 
 		self.configWriter = BackendConfigWriter(meta, file, len(vector_writer.getTestVectorFileName(0)))

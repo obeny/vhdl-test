@@ -1,3 +1,5 @@
+import os
+
 import log
 import XmlHandler as XMLH
 import VectorWriter as VW
@@ -19,7 +21,8 @@ class AppGenTb:
 		self.meta = xmlHandler.buildMeta(self.out)
 
 		self.vectorWriter = VW.VectorWriter(self.meta, self.out, self.scripts)
-		self.testWriter = TW.TestWriter(self.meta, self.out, self.vectorWriter)
+		xml_file_name = os.path.splitext(os.path.basename(self.xml))[0]
+		self.testWriter = TW.TestWriter(self.meta, self.out, self.vectorWriter, xml_file_name)
 
 		self.testWriter.run()
 		log.info("testbench duration: {0:s}"\
