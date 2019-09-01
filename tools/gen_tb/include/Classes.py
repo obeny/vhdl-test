@@ -146,12 +146,13 @@ class SignalClock(Signal):
 			value = int(self.freq.split(" ")[0])
 			suffix = self.freq.split(" ")[1]
 
-			period_value = 1000.0/value
+			period_value = 1000000.0/value
 			if suffix == 'k':
-				period_suffix = "us"
-			elif suffix == "M":
 				period_suffix = "ns"
+			elif suffix == "M":
+				period_suffix = "ps"
 			elif suffix == "G":
+				period_value /= 1000
 				period_suffix = "ps"
 			else:
 				log.error("getPeriod: unsupported frequency")
