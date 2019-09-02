@@ -292,9 +292,9 @@ class TestWriter:
 						clk_def = 'l'
 					else:
 						clk_def = 'h'
-		file.write("t:{0:s}:{1:s};s:{2:d};t:{3:d};v:{4:d};{5:s};{6:s}"\
-			.format(comp_type, clk_def, self.meta.signals.count, self.meta.testcases.getTestcaseCount(),\
-				self.__getVectorTotalCount(), self.meta.component.interval, self.meta.component.clk_period))
+		file.write("t:{0:s}:{1:s};s:{2:d};{3:s};{4:s}"\
+			.format(comp_type, clk_def, self.meta.signals.count,\
+				self.meta.component.interval, self.meta.component.clk_period))
 		file.close()
 
 	def __prepareLibraries(self):
