@@ -102,7 +102,10 @@ class BackendConfigWriter:
 		content += "\tconstant SIGNAL_COUNT : INTEGER := {0:d};\n".format(self.meta.signals.getFieldCount())
 		content += "\tconstant TESTCASE_COUNT : INTEGER := {0:d};\n".format(self.meta.testcases.getTestcaseCount())
 		content += "\tconstant FILENAME_LEN : INTEGER := {0:d};\n".format(self.vector_filename_len)
-		content += "\tconstant CLOCK_PERIOD : TIME := {0:d} ns;\n".format(UT.TimeUtils.timeValueInNsFromTime(self.meta.component.interval))
+		content += "\tconstant INTERVAL : TIME := {0:d} ns;\n".format(UT.TimeUtils.timeValueInNsFromTime(self.meta.component.interval))
+		if self.meta.signals.getSignal(self.meta.signals.getClock()):
+			content += "\tconstant CLK_PERIOD : TIME := {0:s};\n".format(self.meta.signals.getSignal(self.meta.signals.getClock()).getPeriod())
+			content += "\tconstant CLK_DUTY : TIME := {0:s};\n".format(self.meta.signals.getSignal(self.meta.signals.getClock()).duty)
 		content += "end testing_config;\n"
 		self.file.write(content)
 		self.file.close()
@@ -399,7 +402,7 @@ class TestWriter:
 	def __prepareSignalsClock(self, signal):
 		self.file.write("\tsignal s_{0:s} : {1:s} := {2:s};\n"\
 			.format(signal.name, signal.type, "DEF_{0:s}_VAL".format(signal.name.upper())))
-		self.file.write("\tsignal s_{0:s}_rst : STD_LOGIC := '0';\n".format(signal.name))
+		self.file.write("\tsignal s_{0:s}_rst : STD_LOGIC := '1';\n".format(signal.name))
 
 	def __prepareSignalsIO(self, signal):
 		self.file.write("\talias s_{0:s} : {1:s} is ports({2:d});\n"\
@@ -450,8 +453,13 @@ class TestWriter:
 	def __prepareClockProcess(self, clock):
 		self.file.write("\t-- clock: {0:s}\n".format(clock.name))
 		self.file.write("\t{0:s}_clock_proc: process (s_{0:s}, s_{0:s}_rst)\n\tbegin\n".format(clock.name))
-		self.file.write("\t\tif s_{0:s}_rst = '0' then\n\t\t\ts_{0:s} <= not s_{0:s} after ({1:s} / 2);\n\t\telse\n\t\t\ts_{0:s} <= DEF_{2:s}_VAL;\n"\
-			.format(clock.name, clock.getPeriod(), clock.name.upper()))
+		self.file.write("\t\tif s_{0:s}_rst = '0' then\n".format(clock.name))
+		self.file.write("\t\t\tif s_{0:s} = DEF_{1:s}_VAL then\n".format(clock.name, clock.name.upper()))
+		self.file.write("\t\t\t\ts_{0:s} <= not DEF_{1:s}_VAL after {2:s};\n".format(clock.name, clock.name.upper(), clock.name.upper()+"_DUTY"))
+		self.file.write("\t\t\telse\n")
+		self.file.write("\t\t\t\ts_{0:s} <= DEF_{1:s}_VAL after ({2:s} - {3:s});\n".format(clock.name, clock.name.upper(), clock.name.upper()+"_PERIOD", clock.name.upper()+"_DUTY"))
+		self.file.write("\t\t\tend if;\n")
+		self.file.write("\t\telse\n\t\t\ts_{0:s} <= DEF_{1:s}_VAL;\n".format(clock.name, clock.name.upper()))
 		self.file.write("\t\tend if;\n\tend process;")
 			
 		self.file.write("\n")
@@ -531,7 +539,9 @@ class TestWriter:
 			.format(vector_file_name_short, self.component.name))
 		
 		self.file.write("\t\t-- wait for circuit initialization\n\t\twait for 1 ns;\n")
-		self.file.write("\n\t\t-- TESTBENCH ENTRY\n\t\ttb_begin;\n\n")
+		if self.signals.getClockCount() != 0:
+			self.file.write("\t\t-- start clock\n\t\ts_clk_rst <= '0';\n\n")
+		self.file.write("\t\t-- TESTBENCH ENTRY\n\t\ttb_begin;\n\n")
 		self.file.write("\t\tfor testcase_num in 1 to TESTCASE_COUNT loop\n")
 		if self.signals.getClockCount() != 0:
 			self.file.write("\t\t\t-- main clock handling\n")
@@ -540,9 +550,8 @@ class TestWriter:
 			self.file.write("\t\t\t\t\treport \"RESETTING CLOCK: {0:s}\";\n".format(self.signals.getClock()))
 			self.file.write("\t\t\t\t\tTC_NUM  <= 128;\n")
 			self.file.write("\t\t\t\t\ts_clk_rst <= '1';\n")
-			self.file.write("\t\t\t\t\twait for CLOCK_PERIOD;\n")
+			self.file.write("\t\t\t\t\twait for INTERVAL;\n")
 			self.file.write("\t\t\t\t\ts_clk_rst <= '0';\n")
-			self.file.write("\t\t\t\t\twait for 1 ns;\n")
 			self.file.write("\t\t\t\twhen CLK_DISABLE =>\n")
 			self.file.write("\t\t\t\t\treport \"DISABLING CLOCK: {0:s}\";\n".format(self.signals.getClock()))
 			self.file.write("\t\t\t\t\ts_clk_rst <= '1';\n")
@@ -583,7 +592,7 @@ class TestWriter:
 			self.testbench_duration += testcase_duration
 
 			if test.clock_reset:
-				self.testbench_duration += UT.TimeUtils.timeValueInNsFromTime(self.component.interval) + 1
+				self.testbench_duration += UT.TimeUtils.timeValueInNsFromTime(self.component.interval)
 
 			marker = "{0:d} ns".format(self.testbench_duration + 1)
 			self.simWriter.insertMarker(marker)

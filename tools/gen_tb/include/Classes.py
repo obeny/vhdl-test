@@ -136,10 +136,11 @@ class SignalClock(Signal):
 		Signal.__init__(self)
 		self.freq = ""
 		self.period = ""
+		self.duty = ""
 
 	def __str__(self):
-		return "name={0:s}, role={1:s}, type={2:s}, value={3:s}, freq={4:s}"\
-			.format(self.name, self.role, self.type, self.value, self.freq)
+		return "name={0:s}, role={1:s}, type={2:s}, value={3:s}, freq={4:s}, duty={5:s}"\
+			.format(self.name, self.role, self.type, self.value, self.freq, self.duty)
 
 	def getPeriod(self):
 		if not self.period:

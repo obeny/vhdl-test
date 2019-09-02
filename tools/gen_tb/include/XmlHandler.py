@@ -224,6 +224,7 @@ class XmlHandler:
 
 		signal.value = xml_node.attrib.get('val', '0')
 		signal.freq = xml_node.attrib['freq']
+		signal.duty = xml_node.attrib.get('duty', signal.getPeriod() + " / 2")
 		return signal
 
 	def __buildSignalVector(self, xml_node):

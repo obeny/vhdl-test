@@ -47,7 +47,7 @@
 				<set sig="d" val="1"/>
 				<exp sig="q" val="l"/>
 			</step>
-			<step>
+			<step after="u007">
 				<exp sig="q" val="h"/>
 			</step>
 			<step>
@@ -56,7 +56,6 @@
 			<step>
 				<exp sig="q" val="h"/>
 			</step>
-
 			<step>
 				<set sig="d" val="0"/>
 				<exp sig="q" val="h"/>
