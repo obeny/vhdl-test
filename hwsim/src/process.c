@@ -35,6 +35,11 @@ bool executeTestVector(void)
         {
             rtdata.cur_clk_ticks = 0;
             rtdata.cur_ns = 0;
+
+            if (E_CLK_DEF_H == rtdata.meta.clk_def_val)
+                setPinValue(rtdata.meta.clock_pin_pos, true);
+            else
+                setPinValue(rtdata.meta.clock_pin_pos, false);
         }
     }
     executeVector();
