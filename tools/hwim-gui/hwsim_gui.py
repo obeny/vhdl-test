@@ -171,7 +171,8 @@ class Communication:
 		ns += report[vec_rep_start + 4 + 4] << 16
 		ns += report[vec_rep_start + 4 + 5] << 24
 
-		log.info("Total clock ticks: {0:d}; Total time: {1:d} ns".format(clk_ticks, ns))
+		if self.impl.md.comp_type == 's':
+			log.info("Total clock ticks: {0:d}; Total time: {1:d} ns".format(clk_ticks, ns))
 		return True
 
 	def __sendCmd(self, command):
@@ -444,15 +445,17 @@ class Impl:
 		map_file.close()
 
 		signals = line.split(' ')
-		count = len(signals)
 		sig_map = []
 		hiz_map = []
-		for s in range(count):
+		for s in range(len(signals)):
 			e = signals[s].split(':')
-			x = e[0].split("-")
-			sig_map.append((int(x[0]), x[1], int(e[1])))
-			if len(e) == 3:
-				hiz_map.append((int(e[0].split("-")[0]), int(e[2])))
+			n = e[0].split("-")
+			sig_map.append((int(n[0]), n[1], int(e[1])))
+			if n[1][0] == 'Z':
+				if len(e) == 3:
+					hiz_map.append((int(e[0].split("-")[0]), int(e[2])))
+				else:
+					log.fatal("HI-Z signal \"{0:s}\" do not have validation pin defined".format(n[1]))
 
 		return sig_map, hiz_map
 
