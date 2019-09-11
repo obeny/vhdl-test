@@ -21,6 +21,9 @@
 				<set sig="b" val="0"/>
 				<exp sig="a" val="L"/>
 			</step>
+			<step>
+				<exp sig="b" val="Z"/>
+			</step>
 			<!-- repeat step, with different definition -->
 			<step>
 				<set sig="b" val="-"/>
@@ -29,6 +32,9 @@
 			<step>
 				<set sig="b" val="1"/>
 				<exp sig="a" val="H"/>
+			</step>
+			<step>
+				<exp sig="b" val="Z"/>
 			</step>
 		</test>
 
@@ -40,8 +46,14 @@
 				<exp sig="b" val="L"/>
 			</step>
 			<step>
+				<exp sig="a" val="Z"/>
+			</step>
+			<step>
 				<set sig="a" val="1"/>
 				<exp sig="b" val="H"/>
+			</step>
+			<step>
+				<exp sig="a" val="Z"/>
 			</step>
 		</test>
 
@@ -49,7 +61,9 @@
 		<test name="TEST3: sequence when dir = 0, forward b to a">
 			<seq>
 				<vec>#### 0 L 0</vec>
+				<vec>#### 0 - Z</vec>
 				<vec>#### - H 1</vec>
+				<vec>#### - - Z</vec>
 			</seq>
 		</test>
 	</testcases>
