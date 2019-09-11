@@ -1,3 +1,5 @@
 dir - PIN_1 -> A0
 a   - PIN_2 -> A1
 b   - PIN_3 -> A2
+z_a - PIN_2 -> A3
+z_b - PIN_3 -> A4
