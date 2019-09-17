@@ -5,7 +5,7 @@
 		<in name="oe" val="1"/>
 		<in name="a" val="0"/>
 
-		<in_vec name="av" size="2" order="desc" val="0 0"/>
+		<in_vec name="av" size="2" order="desc" val="00"/>
 
 		<inout name="b"/>
 		<inout_vec name="bv" size="2" order="desc"/>
