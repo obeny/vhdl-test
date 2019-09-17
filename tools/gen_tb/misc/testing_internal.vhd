@@ -97,9 +97,6 @@ package body testing_internal is
 	) is
 	begin
 		for i in ptarget'RANGE loop
-			ptarget(i) := 'U';
-		end loop;
-		for i in ptarget'RANGE loop
 			ptarget(i) := pdefault(i);
 		end loop;
 	end clear_set_vector;
