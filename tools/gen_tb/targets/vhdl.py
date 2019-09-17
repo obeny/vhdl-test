@@ -526,8 +526,9 @@ class TestWriter:
 			if signal.value and signal.role != 'clock':
 				if type(signal) is CLS.SignalVector:
 					range_str = self.__getRange(signal.pos, signal.size, False)
+					signal_value = signal.value[::-1]
 					self.file.write("\t\tdef_set_vector{0:s} := \"{1:s}\";\n"\
-						.format(range_str, signal.value))
+						.format(range_str, signal_value))
 				else:
 					self.file.write("\t\tdef_set_vector({0:d}) := '{1:s}';\n"\
 						.format(signal.pos, signal.value))
