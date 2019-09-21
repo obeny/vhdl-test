@@ -64,6 +64,7 @@ static void executeVector(void)
     for (UINT8 signal = 0; signal < rtdata.meta.signals_cnt; ++signal)
         processSetSignal(signal, rtdata.vectors[rtdata.cur_vector].content[signal]);
 
+    // handle clock for sequential component
     if (E_COMP_TYPE_SEQUENTIAL == rtdata.meta.comp_type)
     {
         rtdata.cur_ns += rtdata.vectors[rtdata.cur_vector].interval;
@@ -103,13 +104,16 @@ static void processSetSignal(UINT8 pos, BYTE val)
             break;
         case E_SIGVAL_SET_L:
         case E_SIGVAL_SET_H:
+        {
             setPinDir(pos, E_PINDIR_OUT);
             setPinValue(pos, (E_SIGVAL_SET_L == val)?(false):(true));
             break;
+        }
         case E_SIGVAL_SET_Z:
-        case E_SIGVAL_SET_X:
+        {
             setPinDir(pos, E_PINDIR_IN);
             break;
+        }
         default:
             break;
     }
@@ -154,6 +158,11 @@ static bool processExpSignal(UINT8 pos, BYTE val)
             if ((false == z_l) && (true == z_h))
                 return (true);
             return (false);
+        }
+        case E_SIGVAL_EXP_X:
+        {
+            setPinDir(pos, E_PINDIR_IN);
+                return (true);
         }
         default:
             break;

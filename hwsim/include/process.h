@@ -20,13 +20,13 @@ enum
     E_SIGVAL_SET_L = '0',
     E_SIGVAL_SET_H = '1',
     E_SIGVAL_SET_Z = 'Z',
-    E_SIGVAL_SET_X = 'X',
 
     E_SIGVAL_EXP_L = 'l',
     E_SIGVAL_EXP_H = 'h',
     E_SIGVAL_EXP_LZ = 'L',
     E_SIGVAL_EXP_HZ = 'H',
-    E_SIGVAL_EXP_Z = 'Z'
+    E_SIGVAL_EXP_Z = 'Z',
+    E_SIGVAL_EXP_X = 'X'
 } e_sig_val;
 
 enum
@@ -78,8 +78,8 @@ typedef struct
     e_comp_type_t comp_type;
     e_clk_def_t clk_def_val;
 
+    UINT16 vector_cnt;
     UINT8 signals_cnt;
-    UINT8 vector_cnt;
     UINT8 testcase_cnt;
     UINT8 clock_pin_pos;
     UINT32 clock_period;
@@ -94,9 +94,9 @@ typedef struct
     UINT32 cur_clk_ticks;
 
     UINT16 total_clk_ticks_cnt;
+    UINT16 cur_vector;
 
     UINT8 broken_frames;
-    UINT8 cur_vector;
     UINT8 cur_testcase;
     UINT8 prev_testcase;
 

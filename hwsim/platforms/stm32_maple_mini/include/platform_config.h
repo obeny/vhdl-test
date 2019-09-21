@@ -7,7 +7,7 @@
 
 // CPU frequency
 #define XTAL_FREQ 8000000UL
-#define INTOSC_FREQ 8000000UL
+// #define INTOSC_FREQ 8000000UL
 
 #define MCK_USE_PLL
 // #define MCK_USE_XTAL

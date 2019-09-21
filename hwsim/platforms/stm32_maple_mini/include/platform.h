@@ -11,7 +11,7 @@
 
 #define GPIO_CNT 24
 
-#define MAX_SIGNALS (GPIO_CNT+1)
+#define MAX_SIGNALS (GPIO_CNT)
 #define MAX_VECTORS (UINT8_MAX)
 #define MAX_TESTCASES 32
 

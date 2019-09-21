@@ -153,10 +153,10 @@ static bool cmdSendReport(void)
 {
     UINT8 byte = usartReadByte(&usart_comm);
 
+    UINT16 vectors;
+    UINT16 first_vector;
+    UINT16 index;
     UINT8 testcase;
-    UINT8 first_vector;
-    UINT8 vectors;
-    UINT8 index;
     UINT8 len;
 
     if (E_CMD_SEND_REPORT == byte)
