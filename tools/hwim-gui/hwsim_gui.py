@@ -17,7 +17,7 @@ app_version = "0.7"
 app_prog = os.path.splitext(os.path.basename(exec_name))[0]
 
 app_description = "Executes generated test vectors on hardware simulator."
-app_epilog = app_prog + " version: " + app_version + "\nCopyright (C) 2019 - Marcin 'obeny' Benka <obeny@obeny.net>\n\
+app_epilog = app_prog + " version: " + app_version + "\nCopyright (C) 2019 - Marcin 'obeny' Benka <marcin.benka@gmail.com>\n\
 This program may be freely redistributed under the terms of the GNU GPL v2"
 
 #
@@ -131,8 +131,6 @@ class Communication:
 			log.info("Expectations " + log.TermColor.LGREEN + "OK" + log.TermColor.NC)
 
 	def __fetchReport(self):
-		log.info("REPORT:")
-
 		failed_vectors = 0
 		vectors_per_tc = self.__getTestcaseVectorCount(self.cur_testcase)
 		byte_cnt = 3 + 4 * vectors_per_tc + 2 + 4
@@ -505,8 +503,7 @@ class Impl:
 		log.note("Building vector file list")
 		if self.tc:
 			vec_list = []
-			tc_list = self.tc.split(',')
-			for i in tc_list:
+			for i in self.tc:
 				vec_list.append(self.target_sim_path + "/" + self.comp + "_{0:02d}.vec".format(int(i)))
 		else:
 			vec_list = glob.glob(self.target_sim_path + "/" + self.comp + "*.vec")
@@ -563,30 +560,46 @@ def run():
 
 	arg_parser.add_argument("comp", help="component name <required>")
 
-	arg_parser.add_argument("-c", "--com", help="UART communication port <required>", required=True)
-	arg_parser.add_argument("-t", "--tc", help="run only given testcases; comma delimeted")
+	arg_parser.add_argument("--com", help="UART communication port <required>", required=True)
+	arg_parser.add_argument("--tc", help="run only given testcases; comma delimeted, e.g. 1,2-5,7")
 
-	arg_parser.add_argument("-v", "--verbose", help="logging verbosity (note, debug)", nargs='?', choices=['note', 'debug'])
+	arg_parser.add_argument("--verbose", help="logging verbosity (note, debug)", nargs='?', choices=['note', 'debug'])
 	arg_parser.add_argument("--version", action="version", version="%(prog)s-" + app_version)
 
 	args = arg_parser.parse_args()
 
 	comm = args.com
 	comp = args.comp
-	tc = args.tc
-	if args.verbose == None:
-		verbose = log.Verbosity.INFO
-	elif args.verbose == 'note':
+
+	tc_list = None
+	if args.tc:
+		tc_list = []
+		for tc in args.tc.split(','):
+			if '-' in tc:
+				r = tc.split('-')
+				b = int(r[0])
+				e = int(r[1])
+				for i in range(b, e + 1):
+					tc_list.append(i)
+			else:
+				tc_list.append(int(tc))
+		tc_set = set(tc_list)
+		tc_list = list (tc_set)
+		tc_list.sort()
+
+	if args.verbose == 'note':
 		verbose = log.Verbosity.NOTE
-	else:
+	elif args.verbose == 'debug':
 		verbose = log.Verbosity.DEBUG
+	else:
+		verbose = log.Verbosity.INFO
 
 	app_dir = os.path.dirname(exec_name)
 	target_sim_path = os.path.realpath(app_dir + "/../../target_sim")
 	if not os.path.isdir(target_sim_path):
 		log.fatal("Directory {0:s} doesn't exist".format(target_sim_path))
 
-	app = Impl(target_sim_path, comm, comp, tc, verbose)
+	app = Impl(target_sim_path, comm, comp, tc_list, verbose)
 	log.info("running hwsim")
 	app.run()
 
