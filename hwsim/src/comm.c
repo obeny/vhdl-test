@@ -22,6 +22,7 @@ static bool cmdSetMeta(void);
 static bool cmdSetFlags(void);
 static bool cmdConfigVector(void);
 static bool cmdHiz(void);
+static bool cmdDeviceInfo(void);
 
 static bool cmdExecute(void);
 
@@ -51,6 +52,8 @@ bool handleCommand(void)
             return cmdSetFlags();
         case E_CMD_HIZ:
             return cmdHiz();
+        case E_CMD_DEVICE_INFO:
+            return cmdDeviceInfo();
         default:
             break;
     }
@@ -275,6 +278,34 @@ static bool cmdHiz(void)
         return (true);
     }
 fail:
+    usartSendByte(&usart_comm, 'F');
+    return (false);
+}
+
+// --------------------------------------------------------------------------
+static bool cmdDeviceInfo(void)
+{
+    UINT8 payload_len;
+
+    UINT8 byte = usartReadByte(&usart_comm);
+    if (E_CMD_DEVICE_INFO == byte)
+    {
+        usartSendByte(&usart_comm, 'O');
+
+        comm_buffer[1] = GPIO_CNT;
+        comm_buffer[2] = MAX_TESTCASES;
+        comm_buffer[3] = (uint16_t)(MAX_VECTORS) & 0xFF;
+        comm_buffer[4] = ((uint16_t)(MAX_VECTORS) >> 8) & 0xFF;
+        comm_buffer[5] = VERSION_NUM;
+        comm_buffer[6] = strlen(FVERSION);
+
+        memset((void *)(comm_buffer+7), 0x00, PLATFORM_NAME_LEN);
+        strncpy((char*)(comm_buffer+7), FVERSION, PLATFORM_NAME_LEN);
+        payload_len = 7 + PLATFORM_NAME_LEN;
+        comm_buffer[payload_len] = checksum8Bit(comm_buffer, payload_len);
+        usartSend(&usart_comm, comm_buffer, payload_len+1);
+        return (true);
+    }
     usartSendByte(&usart_comm, 'F');
     return (false);
 }

@@ -16,7 +16,8 @@ enum command_e
     E_CMD_SET_FLAGS = 'f',
     E_CMD_CFG_VECTOR = 'v',
     E_CMD_EXECUTE = 'e',
-    E_CMD_HIZ = 'z'
+    E_CMD_HIZ = 'z',
+    E_CMD_DEVICE_INFO = 'd'
 };
 
 bool handleCommand();

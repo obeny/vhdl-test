@@ -75,6 +75,7 @@ class CommandType(IntEnum):
 	DEF_VECTOR = 5
 	EXECUTE = 6
 	HIZ = 7
+	DEVICE_INFO = 8
 
 class HwSimCommand(IntEnum):
 	RESET = ord('r')
@@ -84,6 +85,7 @@ class HwSimCommand(IntEnum):
 	CFG_VECTOR = ord('v')
 	EXECUTE = ord('e')
 	HIZ = ord('z')
+	DEVICE_INFO = ord('d')
 
 class CompType(IntEnum):
 	CONCURRENT = 0
@@ -92,6 +94,21 @@ class CompType(IntEnum):
 #
 # CLASSES
 # =======
+class DeviceInfo:
+	platform = ""
+	platform_ver = 0
+	gpio_cnt = 0
+	testcase_cnt_max = 0
+	vectors_cnt_max = 0
+
+	def __str__(self):
+		major = int(self.platform_ver >> 4)
+		minor = int(self.platform_ver & 0xF)
+		ver = "{0:d}.{1:d}".format(major, minor)
+
+		return ("platform: {0:s}-{1:s}, gpios: {2:d}, testcases: {3:d}, vectors: {4:d}"\
+			.format(self.platform, ver, self.gpio_cnt, self.testcase_cnt_max, self.vectors_cnt_max))
+
 class Communication:
 	def __init__(self, port_name, impl):
 		self.impl = impl
@@ -173,6 +190,24 @@ class Communication:
 			log.info("Total clock ticks: {0:d}; Total time: {1:d} ns".format(clk_ticks, ns))
 		return True
 
+	def __fetchDeviceInfo(self):
+		di = DeviceInfo()
+		byte_cnt = 7 + 32 + 1
+		device_info = self.comm.read(byte_cnt)
+		chksum = self.__checkSum(device_info, byte_cnt - 1)
+		if not device_info[byte_cnt - 1] == chksum:
+			log.warning("Checksum mismatch: {0:d} != {1:d}".format(device_info[byte_cnt - 1], chksum))
+			return False
+		di.gpio_cnt = device_info[1]
+		di.testcase_cnt_max = int(device_info[2])
+		di.vectors_cnt_max = int(device_info[3]) + int(device_info[4] << 4)
+		di.platform_ver = int(device_info[5])
+		platform_name_len = int(device_info[6])
+		di.platform = str(device_info[7:platform_name_len+7].decode())
+		log.info("Hwsim: " + str(di))
+		self.impl.device_info = di
+		return True
+
 	def __sendCmd(self, command):
 		comm_map = {
 			CommandType.RESET: HwSimCommand.RESET,
@@ -182,7 +217,8 @@ class Communication:
 			CommandType.DEF_VECTOR: HwSimCommand.CFG_VECTOR,
 			CommandType.SEND_REPORT: HwSimCommand.SEND_REPORT,
 			CommandType.EXECUTE: HwSimCommand.EXECUTE,
-			CommandType.HIZ: HwSimCommand.HIZ
+			CommandType.HIZ: HwSimCommand.HIZ,
+			CommandType.DEVICE_INFO: HwSimCommand.DEVICE_INFO,
 		}
 
 		switcher = {
@@ -193,7 +229,8 @@ class Communication:
 			CommandType.DEF_VECTOR: self.__sendDefaultVector,
 			CommandType.SEND_REPORT: self.__sendReport,
 			CommandType.EXECUTE: self.__sendExecute,
-			CommandType.HIZ: self.__sendHiz
+			CommandType.HIZ: self.__sendHiz,
+			CommandType.DEVICE_INFO: self.__sendDeviceInfo,
 		}
 
 		func = switcher.get(command)
@@ -208,6 +245,8 @@ class Communication:
 
 		if command == CommandType.SEND_REPORT:
 			return self.__fetchReport()
+		elif command == CommandType.DEVICE_INFO:
+			return self.__fetchDeviceInfo()
 		return True
 
 	def __sendCmdReset(self):
@@ -306,8 +345,18 @@ class Communication:
 		log.debug("HIZ frame = " + str(bytelist))
 		self.comm.write(bytearray(bytelist))
 
+	def __sendDeviceInfo(self):
+		log.note("Requesting device information")
+
+		self.comm.write(b'dd')
+
 	def sendReset(self):
 		if not self.__sendCmd(CommandType.RESET):
+			return False
+		return True
+
+	def discoverHwsim(self):
+		if not self.__sendCmd(CommandType.DEVICE_INFO):
 			return False
 		return True
 
@@ -406,6 +455,7 @@ class Impl:
 		log.setVerbose(verbose)
 		self.tc = tc
 		self.failed_testcases = 0
+		self.device_info = None
 		self.communication = Communication(comm, self)
 
 		self.comp = comp
@@ -525,6 +575,13 @@ class Impl:
 		self.md.vectors = len(self.vs)
 
 		log.note("Metadata = " + str(self.md))
+
+		if not self.communication.discoverHwsim():
+			log.error("HW simulator discovery failed")
+		log.info("HW simulator discovery " + log.TermColor.LGREEN + "OK" + log.TermColor.NC)
+
+		if len(self.vs) > self.device_info.vectors_cnt_max:
+			log.error("Vector count not supported by hwsim ({0:d}/{1:d})".format(len(self.vs), self.device_info.vectors_cnt_max))
 
 		if not self.communication.initSim():
 			log.error("HW simulator initialization failed")
