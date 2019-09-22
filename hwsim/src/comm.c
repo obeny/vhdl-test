@@ -94,25 +94,34 @@ static bool cmdCpuReset(void)
 // --------------------------------------------------------------------------
 static bool cmdSetMeta(void)
 {
-    if (!usartRead(&usart_comm, comm_buffer+1, 14, COMM_TIMEOUT))
+    if (!usartRead(&usart_comm, comm_buffer+1, 15, COMM_TIMEOUT))
         goto fail;
 
-    if (checksum8Bit(comm_buffer, 14) == comm_buffer[14])
+    if (checksum8Bit(comm_buffer, 15) == comm_buffer[15])
     {
         rtdata.meta.comp_type = comm_buffer[1];
         rtdata.meta.clk_def_val = comm_buffer[2];
         rtdata.meta.testcase_cnt = comm_buffer[3];
-        rtdata.meta.vector_cnt = comm_buffer[4];
-        rtdata.meta.signals_cnt = comm_buffer[5];
-        rtdata.meta.clock_period = comm_buffer[6] | comm_buffer[7] << 8 | comm_buffer[8] << 16 | comm_buffer[9] << 24;
-        rtdata.meta.interval = comm_buffer[10] | comm_buffer[11] << 8 | comm_buffer[12] << 16 | comm_buffer[13] << 24;
+        rtdata.meta.vector_cnt = comm_buffer[4] | comm_buffer[5] << 8;
+        rtdata.meta.signals_cnt = comm_buffer[6];
+        rtdata.meta.clock_period = comm_buffer[7] | comm_buffer[8] << 8 | comm_buffer[9] << 16 | comm_buffer[10] << 24;
+        rtdata.meta.interval = comm_buffer[11] | comm_buffer[12] << 8 | comm_buffer[13] << 16 | comm_buffer[14] << 24;
         rtdata.meta.clock_pin_pos = rtdata.meta.signals_cnt;
+
+        if (
+            rtdata.meta.testcase_cnt > MAX_TESTCASES ||
+            rtdata.meta.signals_cnt > MAX_SIGNALS ||
+            rtdata.meta.vector_cnt > MAX_VECTORS
+        )
+            goto fail;
 
         if (rtdata.meta.comp_type == E_COMP_TYPE_SEQUENTIAL)
         {
             setPinDir(rtdata.meta.clock_pin_pos, E_PINDIR_OUT);
             setPinValue(rtdata.meta.clock_pin_pos, rtdata.meta.clk_def_val);
         }
+        else if (rtdata.meta.comp_type != E_COMP_TYPE_CONCURRENT)
+            goto fail;
 
         usartSendByte(&usart_comm, 'O');
         return (true);
@@ -197,7 +206,7 @@ static bool cmdSendReport(void)
 static bool cmdConfigVector(void)
 {
     UINT32 interval;
-    UINT8 vector_num;
+    UINT16 vector_num;
     UINT8 testcase_num;
     UINT8 payload_size =
         sizeof(vector_num) + sizeof(testcase_num) + sizeof(rtdata.vectors[0].interval) + rtdata.meta.signals_cnt;
@@ -207,9 +216,9 @@ static bool cmdConfigVector(void)
 
     if (checksum8Bit(comm_buffer, payload_size+1) == comm_buffer[payload_size+1])
     {
-        vector_num = comm_buffer[1];
-        testcase_num = comm_buffer[2];
-        interval = comm_buffer[3] | comm_buffer[4] << 8 | comm_buffer[5] << 16 | comm_buffer[6] << 24;
+        vector_num = comm_buffer[1] | comm_buffer[2] << 8;
+        testcase_num = comm_buffer[3];
+        interval = comm_buffer[4] | comm_buffer[5] << 8 | comm_buffer[6] << 16 | comm_buffer[7] << 24;
 
         if (!((vector_num == VECTOR_DEFAULTS) && (VECTOR_DEFAULT_INTVAL == interval)))
         {
@@ -219,7 +228,7 @@ static bool cmdConfigVector(void)
         else
             vector_num = VECTOR_DEFAULTS_POS;
 
-        memcpy(&rtdata.vectors[vector_num].content, &comm_buffer[7], rtdata.meta.signals_cnt);
+        memcpy(&rtdata.vectors[vector_num].content, &comm_buffer[8], rtdata.meta.signals_cnt);
         rtdata.vectors[vector_num].interval = interval;
         rtdata.vectors[vector_num].testcase = testcase_num;
 

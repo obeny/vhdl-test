@@ -226,7 +226,8 @@ class Communication:
 			bytelist.append(int(CompType.SEQUENTIAL))
 			bytelist.append(self.impl.md.clock_def)
 		bytelist.append(self.impl.md.testcases)
-		bytelist.append(self.impl.md.vectors)
+		bytelist.append(self.impl.md.vectors & 0xFF)
+		bytelist.append((self.impl.md.vectors >> 8) & 0xFF)
 		bytelist.append(self.impl.md.signals)
 		for e in self.impl.md.clock_period.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
@@ -254,7 +255,8 @@ class Communication:
 
 		bytelist = []
 		bytelist.append(int(HwSimCommand.CFG_VECTOR))
-		bytelist.append(self.impl.dv.vector_num)
+		bytelist.append(self.impl.dv.vector_num & 0xFF)
+		bytelist.append((self.impl.dv.vector_num >> 8) & 0xFF)
 		bytelist.append(self.impl.dv.testcase)
 		for e in self.impl.dv.interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)
@@ -270,7 +272,8 @@ class Communication:
 
 		bytelist = []
 		bytelist.append(int(HwSimCommand.CFG_VECTOR))
-		bytelist.append(self.impl.vs[self.cur_vec].vector_num)
+		bytelist.append(self.impl.vs[self.cur_vec].vector_num & 0xFF)
+		bytelist.append((self.impl.vs[self.cur_vec].vector_num >> 8) & 0xFF)
 		bytelist.append(self.impl.vs[self.cur_vec].testcase)
 		for e in self.impl.vs[self.cur_vec].interval.to_bytes(4, byteorder="little"):
 			bytelist.append(e)

@@ -18,4 +18,8 @@
 
 #define USART_COMM_BAUDRATE 2304
 
+// MISC
+#define PLATFORM_NAME_LEN 32
+#define VERSION_NUM 0x07
+
 #endif // _CONFIG_H
