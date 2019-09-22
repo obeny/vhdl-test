@@ -1,0 +1,129 @@
+# ARCHITECTURE SPECIFIC SETTINGS
+
+# subdirectories with modules to build
+SUBDIRS?=
+
+# functions executed from ram support
+MCU_RAM_FUNCS?=no
+# vectors in ram
+MCU_VECTORS_RAM?=no
+
+# C++ support
+CPP_SUPPORT?=no
+CPP_EXCEPTIONS?=no
+CPP_RTTI?=no
+
+# type and revision
+MCU_FAMILY?=STM32F10X
+MCU_MODEL?=MD
+MCU_SUBMDL?=STM32F103C8
+#MCU_REV=$(shell cat MCU_REV)
+
+# bootloader support
+#BTLDR_SUPPORT=yes
+#BTLDR_END=0x104000
+
+# build parameters support
+ifeq ($(MCU_RAM_FUNCS),yes)
+MCU_FLAGS+=-DRAM_FUNCS
+endif
+
+ifeq ($(MCU_VECTORS_RAM),yes)
+MCU_FLAGS+=-DVECTORS_RAM
+endif
+
+ifeq ($(CPP_SUPPORT),yes)
+MCU_FLAGS+=-DCPP_SUPPORT
+endif
+
+#ifeq ($(BTLDR_SUPPORT),yes)
+#LDFLAGS_BTLDR="-Wl,--section-start=.text=${BTLDR_END}"
+#endif
+
+# don't print CMSIS warnings
+CMSIS_NOWARN=yes
+
+# MAIN CONFIGURATION
+
+# variant of mcu library
+LIB_VARIANT=lib_stm32
+
+# architecture toolchain prefix
+ARCH_PREFIX=arm-none-eabi-
+
+# use colorful output
+#COLORS=no
+
+# common configuration
+CFLAGS_INC=-I./$(LIB_VARIANT)/include/CMSIS -I./$(LIB_VARIANT)/include/$(MCU_FAMILY)/DeviceSupport -I./$(LIB_VARIANT)/include/$(MCU_FAMILY)
+
+CFLAGS_CPU=$(shell cat ARCH)
+
+# language standard
+CFLAGS_STD=-std=gnu11
+CXXFLAGS_STD=-std=gnu++11
+
+# mcu type
+CFLAGS_MCU=-mcpu=$(CFLAGS_CPU) -mtune=$(CFLAGS_CPU)
+# --- cortex-m3 ---
+ifeq ($(CFLAGS_CPU),cortex-m3)
+CFLAGS_MCU+=-msoft-float -mfloat-abi=soft -mthumb -mthumb-interwork
+endif
+
+# compilation options
+CFLAGS_OPT=-funsigned-char -funsigned-bitfields -ffunction-sections -fdata-sections \
+	-ffreestanding -fdelete-null-pointer-checks -fpack-struct --specs=nosys.specs
+
+# warning level
+CFLAGS_WRN=-Wall -Wextra \
+	-Wbad-function-cast -Wunused-parameter -Wshadow -Wpointer-arith -Wmissing-declarations \
+	-Wundef -Wunused -Wunreachable-code -Wuninitialized -Wmissing-noreturn -Wmissing-braces \
+	-Wdeclaration-after-statement -Winit-self -Wcast-qual -Wcast-align -Wnested-externs \
+	-Winline -Wredundant-decls -Wparentheses -Wmaybe-uninitialized
+CXXFLAGS_WRN=-Wall -Wextra \
+	-Wunused-parameter -Wshadow -Wpointer-arith -Wmissing-declarations \
+	-Wundef -Wunused -Wunreachable-code -Wuninitialized -Wmissing-noreturn -Wmissing-braces \
+	-Winit-self -Wcast-align -Winline -Wredundant-decls -Wparentheses -Wmaybe-uninitialized \
+	-Wno-write-strings
+
+MCU_FLAGS+=-DSTM32F10X_$(MCU_MODEL) -DUSE_STDPERIPH_DRIVER -D__CHECK_DEVICE_DEFINES
+CFLAGS_ARCH=$(MCU_FLAGS)
+LDFLAGS_ARCH=-lc -lgcc -L./$(LIB_VARIANT)/ld-scripts -T./$(LIB_VARIANT)/ld-scripts/$(MCU_SUBMDL).ld $(LDFLAGS_BTLDR)
+ASFLAGS_ARCH=$(MCU_FLAGS)
+
+# silence warnings from STM32F10X lib
+ifeq ($(CMSIS_NOWARN),yes)
+CFLAGS_WRN+=-Wno-cpp -Wno-cast-qual
+CXXFLAGS_WRN+=-Wno-cpp -Wno-cast-qual
+endif
+
+# release configuration
+CFLAGS_REL_OPT=-O2 -fomit-frame-pointer -fgcse-sm -fpredictive-commoning -fweb $(CFLAGS_OPT)
+#CFLAGS_REL_OPT=-flto
+CFLAGS_REL_DBG=-ggdb
+LDFLAGS_REL=$(LDFLAGS_ARCH) -Wl,-O1,--gc-sections
+ASFLAGS_REL=$(CFLAGS_REL_DBG) $(ASFLAGS_ARCH)
+
+# debug configuration
+CFLAGS_DBG_OPT=-O0 $(CFLAGS_OPT)
+CFLAGS_DBG_DBG=-ggdb
+LDFLAGS_DBG=$(LDFLAGS_ARCH) -Wl,--gc-sections
+ASFLAGS_DBG=$(CFLAGS_DBG_DBG) $(ASFLAGS_ARCH)
+
+# custom configuration
+CFLAGS_CUSTOM=-DVERSION_NUM=$(shell echo "0x`cat ../../../VERSION | sed -e 's/\.//g'`")
+
+# openocd configuration
+ifeq ($(CROSS_GCC),yes)
+OPENOCD_PATH=/opt/tc_arm-none-eabi/share/openocd
+OPENOCD=/opt/tc_arm-none-eabi/bin/openocd
+else
+OPENOCD_PATH?=/usr/share/openocd
+OPENOCD?=openocd
+endif
+OPENOCD_BIN=openocd
+OPENOCD_INTERFACE?=ftdi/jtag-lock-pick_tiny_2
+
+# swupload options
+SWUPLOAD_PORT?=/dev/ttyUSB0
+SWUPLOAD_OPTS=-p

@@ -10,7 +10,7 @@ logs
 __pycache__
 
 # hwsim externals
-hwsim/platforms/stm32_maple_mini/lib_stm32
+hwsim/platforms/hwsim_stm32_maple_mini/lib_stm32
 
 # eclipse
 .cproject
@@ -18,14 +18,14 @@ hwsim/platforms/stm32_maple_mini/lib_stm32
 .settings
 
 # hwsim binaries
-hwsim/platforms/*/.dep
-hwsim/platforms/*/obj
-hwsim/platforms/*/*.bin
-hwsim/platforms/*/*.elf
-hwsim/platforms/*/*.hex
-hwsim/platforms/*/*.lss
-hwsim/platforms/*/*.map
-hwsim/platforms/*/*.sym
+hwsim/platforms/hwsim_*/.dep
+hwsim/platforms/hwsim_*/obj
+hwsim/platforms/hwsim_*/*.bin
+hwsim/platforms/hwsim_*/*.elf
+hwsim/platforms/hwsim_*/*.hex
+hwsim/platforms/hwsim_*/*.lss
+hwsim/platforms/hwsim_*/*.map
+hwsim/platforms/hwsim_*/*.sym
 
 # hwsim example altera project
 hwsim/examples/vhdl_test_validation_*/db
